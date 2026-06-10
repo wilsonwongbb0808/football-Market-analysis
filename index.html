@@ -1,0 +1,3258 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>滚球盘口分析</title>
+  <style>
+    :root {
+      --bg: #f2f5f7;
+      --ink: #17212b;
+      --muted: #687585;
+      --line: #d7dee5;
+      --panel: #ffffff;
+      --panel-2: #eef4f8;
+      --green: #087a5c;
+      --red: #c4384b;
+      --blue: #165d9a;
+      --gold: #b78316;
+      --grass: #0c6b46;
+      --navy: #11283f;
+      --shadow: 0 18px 40px rgba(17, 40, 63, .10);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 15% 0%, rgba(12, 107, 70, .18), transparent 34%),
+        radial-gradient(circle at 90% 8%, rgba(196, 56, 75, .12), transparent 30%),
+        linear-gradient(180deg, #f7fafb 0%, var(--bg) 46%, #eef3f2 100%);
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+      line-height: 1.55;
+    }
+
+    .app {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: end;
+      padding: 24px;
+      border: 1px solid rgba(255, 255, 255, .48);
+      border-radius: 16px;
+      margin-bottom: 22px;
+      background:
+        linear-gradient(115deg, rgba(17, 40, 63, .94), rgba(12, 107, 70, .88)),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 64px);
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    h1 {
+      font-size: 28px;
+      margin: 0 0 4px;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: rgba(255, 255, 255, .76);
+      font-size: 14px;
+      max-width: 760px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .actions button {
+      min-height: 32px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+    }
+
+    .view-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin: 0 0 18px;
+      padding: 6px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, .72);
+      backdrop-filter: blur(12px);
+    }
+
+    .view-tab {
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .view-tab.active {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: #fff;
+    }
+
+    .view-tab:disabled {
+      cursor: not-allowed;
+      opacity: .48;
+      filter: grayscale(.2);
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      padding: 11px 13px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 15px;
+      white-space: nowrap;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+
+    button.primary {
+      background: var(--red);
+      color: #fff;
+      border-color: var(--red);
+    }
+
+    button:hover { filter: brightness(.97); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 22px;
+      align-items: start;
+      min-width: 0;
+    }
+
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .form {
+      padding: 14px;
+      max-width: 820px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin: 0 0 10px;
+    }
+
+    h3 {
+      font-size: 14px;
+      margin: 14px 0 7px;
+      color: #303940;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    input, select {
+      width: 100%;
+      border: 1px solid #cbd2cc;
+      border-radius: 12px;
+      padding: 9px 10px;
+      font-size: 15px;
+      color: var(--ink);
+      background: #fff;
+      min-width: 0;
+      min-height: 40px;
+      touch-action: manipulation;
+    }
+
+    input[type="number"] {
+      appearance: textfield;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 6px 0 0;
+    }
+
+    .results {
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    [data-panel] {
+      display: none;
+    }
+
+    [data-panel].active-panel {
+      display: block;
+    }
+
+    .results.active-panel {
+      display: grid;
+    }
+
+    .result-section {
+      display: none;
+    }
+
+    .result-section.active-section {
+      display: block;
+    }
+
+    .summary {
+      padding: 20px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.98), rgba(239,247,244,.98)),
+        linear-gradient(90deg, rgba(12,107,70,.08), transparent);
+    }
+
+    .verdict {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+
+    #summaryText {
+      line-height: 1.75;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .tag {
+      border-radius: 999px;
+      padding: 5px 9px;
+      background: var(--panel-2);
+      color: #314149;
+      font-size: 12px;
+      border: 1px solid #d3ddda;
+    }
+
+    .tag.good { color: var(--green); background: #edf7f1; border-color: #cfe8d8; }
+    .tag.warn { color: var(--gold); background: #fbf4e4; border-color: #ead9ad; }
+    .tag.bad { color: var(--red); background: #faeeee; border-color: #edcccc; }
+    .tag.info { color: var(--blue); background: #eef5fa; border-color: #cdddea; }
+
+    .value-grade {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 92px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 800;
+      box-shadow: 0 8px 18px rgba(17, 40, 63, .10);
+    }
+
+    .value-grade.good {
+      color: #fff;
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .value-grade.warn {
+      color: #3f2c06;
+      background: #ffd873;
+      border-color: #e9be45;
+    }
+
+    .value-grade.bad {
+      color: #fff;
+      background: var(--red);
+      border-color: var(--red);
+    }
+
+    .value-grade.info {
+      color: #fff;
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .card {
+      padding: 18px;
+      min-width: 0;
+    }
+
+    .dashboard-grid {
+      display: none;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 14px;
+    }
+
+    .dashboard-grid.active-section {
+      display: grid;
+    }
+
+    .recommendation-card {
+      padding: 22px;
+      background: linear-gradient(135deg, rgba(17, 40, 63, .97), rgba(12, 107, 70, .92));
+      color: #fff;
+      border-color: rgba(255, 255, 255, .18);
+    }
+
+    .recommendation-card h2,
+    .recommendation-card p {
+      color: inherit;
+    }
+
+    .recommendation-title {
+      font-size: 26px;
+      line-height: 1.25;
+      margin: 0 0 8px;
+      font-weight: 800;
+    }
+
+    .recommendation-subtitle {
+      margin: 0 0 16px;
+      color: rgba(255, 255, 255, .76);
+    }
+
+    .decision-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 0 0 14px;
+    }
+
+    .decision-pill {
+      border: 1px solid rgba(255, 255, 255, .16);
+      border-radius: 16px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, .08);
+      min-height: 70px;
+    }
+
+    .decision-pill span {
+      display: block;
+      color: rgba(255, 255, 255, .68);
+      font-size: 12px;
+      margin-bottom: 3px;
+    }
+
+    .decision-pill b {
+      display: block;
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .risk-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 8px 0 2px;
+    }
+
+    .quick-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .quick-stat {
+      border: 1px solid rgba(255, 255, 255, .18);
+      border-radius: 18px;
+      padding: 18px;
+      background: rgba(255, 255, 255, .08);
+      min-height: 118px;
+    }
+
+    .quick-stat b {
+      display: block;
+      font-size: 24px;
+      line-height: 1.2;
+      margin: 6px 0;
+    }
+
+    .quick-stat span {
+      display: block;
+      font-size: 12px;
+      color: rgba(255, 255, 255, .7);
+    }
+
+    .quick-stat.score-stat {
+      padding: 20px;
+      grid-row: span 2;
+    }
+
+    .score-stat .quick-label {
+      font-size: 15px;
+      color: rgba(255, 255, 255, .82);
+      font-weight: 700;
+    }
+
+    .score-stat .score-value {
+      display: block;
+      font-size: 38px;
+      line-height: 1;
+      margin-top: 12px;
+      font-weight: 900;
+    }
+
+    .quick-stat.lean-stat {
+      min-height: 82px;
+      padding: 14px;
+    }
+
+    .lean-stat b {
+      font-size: 18px;
+      margin: 3px 0;
+    }
+
+    .score-picks {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      min-height: 82px;
+    }
+
+    .score-pick {
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 255, 255, .16);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .1);
+    }
+
+    .score-pick span {
+      display: block;
+      color: rgba(255, 255, 255, .74);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .score-pick b {
+      display: block;
+      margin-top: 4px;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .prob-stat {
+      grid-column: 1 / -1;
+      min-height: 90px;
+      padding: 18px;
+    }
+
+    .prob-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .prob-item {
+      display: grid;
+      gap: 3px;
+      padding: 14px 6px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, .08);
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .prob-item span {
+      font-size: 12px;
+      color: currentColor;
+      opacity: .88;
+    }
+
+    .quick-stat .prob-item b {
+      font-size: 15px;
+      line-height: 1.1;
+      margin: 0;
+      color: currentColor;
+    }
+
+    .prob-home { color: #ff7f8d; }
+    .prob-draw { color: #ffd873; }
+    .prob-away { color: #57d39b; }
+
+    .pro-details {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .pro-details details {
+      padding: 0;
+    }
+
+    .pro-details summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 16px 18px;
+      font-weight: 800;
+    }
+
+    .pro-details summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .pro-details summary::after {
+      content: "+";
+      float: right;
+      color: var(--muted);
+    }
+
+    .pro-details details[open] summary::after {
+      content: "-";
+    }
+
+    .pro-body {
+      padding: 0 18px 18px;
+    }
+
+    .allocation-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .allocation-plan {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .allocation-plan h3 {
+      margin: 0;
+      padding: 12px 14px;
+      background: #f7faf9;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      background: #fff;
+      min-height: 82px;
+    }
+
+    .metric b {
+      display: block;
+      font-size: 22px;
+      margin-bottom: 2px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .probability-details {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .detail-block {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fbfcfb;
+      padding: 13px;
+    }
+
+    .detail-block h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .mini-cell {
+      border: 1px solid #e1e5e0;
+      border-radius: 12px;
+      background: #fff;
+      padding: 9px;
+      min-height: 68px;
+    }
+
+    .mini-cell b {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 3px;
+    }
+
+    .mini-cell span {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+    }
+
+    .analysis-list {
+      margin: 0;
+      padding-left: 19px;
+      color: #2b3339;
+    }
+
+    .analysis-list li { margin: 8px 0; }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      max-width: 100%;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+      width: 100%;
+      min-width: 560px;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      color: var(--muted);
+      background: #f7f9f8;
+      font-weight: 600;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+    .up { color: var(--red); font-weight: 600; }
+    .down { color: var(--green); font-weight: 600; }
+    .flat { color: var(--muted); }
+
+    .note {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 10px 0 0;
+    }
+
+    .form-actions {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .match-cache {
+      display: grid;
+      gap: 8px;
+      margin: 8px 0 2px;
+    }
+
+    .match-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .match-chip {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      align-items: center;
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      text-align: left;
+    }
+
+    .match-chip button {
+      min-height: 34px;
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    .match-chip .danger {
+      color: var(--red);
+      border-color: #efc7cf;
+      background: #fff5f6;
+    }
+
+    .match-chip b {
+      display: block;
+      font-size: 14px;
+    }
+
+    .match-chip span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .app { padding: 16px; }
+      header { align-items: stretch; flex-direction: column; }
+      .actions { justify-content: flex-start; }
+      .layout { grid-template-columns: 1fr; }
+      .form { position: static; }
+      .metrics { grid-template-columns: 1fr; }
+      .dashboard-grid,
+      .allocation-grid { grid-template-columns: 1fr; }
+      .mini-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 520px) {
+      body {
+        background: #f5f7f8;
+        padding-bottom: calc(92px + env(safe-area-inset-bottom));
+      }
+
+      .app { padding: 10px 10px 18px; }
+
+      header {
+        gap: 10px;
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 18px;
+      }
+
+      .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .mini-grid { grid-template-columns: 1fr; }
+
+      h1 { font-size: 21px; }
+      h2 { font-size: 17px; }
+
+      h3 {
+        font-size: 14px;
+        margin-top: 12px;
+        margin-bottom: 7px;
+        padding: 7px 9px;
+        border-radius: 12px;
+        background: #f3f6f7;
+      }
+
+      .subtitle {
+        font-size: 12px;
+        line-height: 1.35;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .verdict { font-size: 19px; }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 6px;
+        width: 100%;
+      }
+
+      .view-tabs {
+        position: sticky;
+        top: max(6px, env(safe-area-inset-top));
+        z-index: 10;
+        background: rgba(255, 255, 255, .92);
+        padding: 5px;
+        margin-bottom: 10px;
+        border-radius: 18px;
+        box-shadow: 0 10px 24px rgba(17, 40, 63, .10);
+      }
+
+      .view-tab {
+        min-height: 44px;
+        font-size: 12px;
+        padding: 8px 4px;
+        border-radius: 14px;
+      }
+
+      .actions button {
+        padding: 5px 4px;
+        font-size: 12px;
+        min-height: 34px;
+      }
+
+      button,
+      input,
+      select {
+        min-height: 46px;
+      }
+
+      label {
+        font-size: 12px;
+        margin-bottom: 4px;
+      }
+
+      input,
+      select {
+        border-radius: 12px;
+        padding: 9px 8px;
+        font-size: 15px;
+      }
+
+      input[type="number"],
+      select {
+        text-align: center;
+        font-weight: 700;
+      }
+
+      input:focus,
+      select:focus {
+        outline: 2px solid rgba(22, 93, 154, .22);
+        border-color: var(--blue);
+        box-shadow: 0 0 0 4px rgba(22, 93, 154, .08);
+      }
+
+      .form, .card, .summary {
+        border-radius: 18px;
+        box-shadow: none;
+        padding: 12px;
+      }
+
+      .form h3 {
+        margin-top: 10px;
+        margin-bottom: 6px;
+      }
+
+      .hint {
+        font-size: 11px;
+        line-height: 1.35;
+      }
+
+      .match-list {
+        display: grid;
+        gap: 8px;
+        overflow-x: visible;
+        padding-bottom: 2px;
+      }
+
+      .match-list .hint {
+        min-width: 100%;
+      }
+
+      .match-chip {
+        min-width: 0;
+        grid-template-columns: 1fr auto auto;
+        gap: 6px;
+        min-height: 52px;
+        padding: 8px 10px;
+      }
+
+      .match-chip button {
+        min-height: 36px;
+        padding: 6px 8px;
+      }
+
+      .recommendation-card {
+        border-radius: 22px;
+        padding: 18px;
+      }
+
+      .recommendation-title {
+        font-size: 24px;
+      }
+
+      .decision-strip {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .decision-pill {
+        min-height: 58px;
+        padding: 8px 7px;
+      }
+
+      .decision-pill span {
+        font-size: 11px;
+      }
+
+      .decision-pill b {
+        font-size: 14px;
+      }
+
+      .quick-stats {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .quick-stat {
+        min-height: 92px;
+        padding: 14px;
+      }
+
+      .quick-stat b {
+        font-size: 24px;
+      }
+
+      .score-stat .score-value {
+        font-size: 34px;
+      }
+
+      .quick-stat.lean-stat {
+        min-height: 92px;
+        padding: 14px;
+      }
+
+      .lean-stat b {
+        font-size: 22px;
+        margin: 6px 0;
+      }
+
+      .score-picks {
+        gap: 8px;
+      }
+
+      .score-pick {
+        min-height: 92px;
+        padding: 12px 10px;
+      }
+
+      .score-pick b {
+        font-size: 23px;
+      }
+
+      .quick-stat.prob-stat {
+        grid-column: 1 / -1;
+        min-height: 132px;
+        padding: 18px;
+      }
+
+      .quick-stat .prob-item b {
+        font-size: 15px;
+      }
+
+      .form-actions {
+        grid-template-columns: 1fr 1fr;
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        bottom: max(8px, env(safe-area-inset-bottom));
+        z-index: 9;
+        padding: 8px;
+        margin: 0;
+        border-radius: 18px;
+        background: rgba(245, 247, 248, .92);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 30px rgba(17, 40, 63, .16);
+      }
+
+      #startAnalysisBtn {
+        grid-column: 1 / -1;
+        min-height: 46px;
+        font-size: 15px;
+        font-weight: 800;
+      }
+
+      #recordBtn,
+      #clearHistoryBtn {
+        min-height: 40px;
+        font-size: 13px;
+      }
+
+      .table-wrap {
+        border-radius: 16px;
+      }
+
+      th, td {
+        padding: 9px 10px;
+        white-space: normal;
+        vertical-align: top;
+      }
+
+      .value-mobile-table,
+      .allocation-mobile-table {
+        min-width: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+      }
+
+      .value-mobile-table thead,
+      .allocation-mobile-table thead {
+        display: none;
+      }
+
+      .value-mobile-table tr,
+      .allocation-mobile-table tr {
+        display: block;
+        padding: 12px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .value-mobile-table tr:last-child,
+      .allocation-mobile-table tr:last-child {
+        border-bottom: 0;
+      }
+
+      .value-mobile-table td,
+      .allocation-mobile-table td {
+        display: grid;
+        grid-template-columns: 72px 1fr;
+        gap: 10px;
+        border: 0;
+        padding: 6px 0;
+        white-space: normal;
+      }
+
+      .value-grade {
+        min-width: 0;
+        width: fit-content;
+        padding: 7px 12px;
+      }
+
+      .value-mobile-table td::before,
+      .allocation-mobile-table td::before {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .value-mobile-table td:nth-child(1)::before,
+      .allocation-mobile-table td:nth-child(1)::before { content: "方向"; }
+
+      .value-mobile-table td:nth-child(2)::before { content: "价值"; }
+      .value-mobile-table td:nth-child(3)::before { content: "建议"; }
+      .value-mobile-table td:nth-child(4)::before { content: "解释"; }
+
+      .allocation-mobile-table td:nth-child(2)::before { content: "金额"; }
+      .allocation-mobile-table td:nth-child(3)::before { content: "占比"; }
+      .allocation-mobile-table td:nth-child(4)::before { content: "理由"; }
+
+      .allocation-plan h3 {
+        padding: 14px;
+      }
+
+      .analysis-list {
+        padding-left: 17px;
+      }
+
+      .analysis-list li {
+        margin: 10px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div>
+        <h1>滚球盘口分析</h1>
+        <p class="subtitle">把欧赔、亚盘、大小球和比分变化整理成可执行的赛中看板：先看推荐和资金，再看原因，专业细节放到数据页。</p>
+      </div>
+      <div class="actions">
+        <button id="sampleBtn">填入示例</button>
+        <button id="clearBtn">清空</button>
+        <button class="primary" id="copyBtn">复制分析</button>
+      </div>
+    </header>
+
+    <nav class="view-tabs" aria-label="功能界面">
+      <button class="view-tab" data-view="input" type="button">填写数据</button>
+      <button class="view-tab active" data-view="dashboard" type="button">推荐看板</button>
+      <button class="view-tab" data-view="saved" type="button">保存记录</button>
+      <button class="view-tab" data-view="pro" type="button">专业数据</button>
+    </nav>
+
+    <div class="layout">
+      <section class="form active-panel" data-panel="input" aria-label="赔率输入">
+        <h2>输入数据</h2>
+        <h3>比赛场次</h3>
+        <div class="grid-2">
+          <div><label for="homeTeam">主队</label><input id="homeTeam" type="text" placeholder="例如：法国"></div>
+          <div><label for="awayTeam">客队</label><input id="awayTeam" type="text" placeholder="例如：巴西"></div>
+        </div>
+
+        <h3>亚盘初盘</h3>
+        <div class="grid-3">
+          <div><label for="ah0">主队盘口</label><input id="ah0" list="handicapList" type="number" step="0.25" value="-0.25"></div>
+          <div><label for="hw0">主队水位</label><input id="hw0" type="number" step="0.01" value="0.73"></div>
+          <div><label for="aw0">客队水位</label><input id="aw0" type="number" step="0.01" value="1.07"></div>
+        </div>
+        <p class="hint">盘口按主队方向填写：主队让球用负数，例如 -0.5；主队受让用正数，例如 +0.5。水位用常见亚洲水位，例如 0.82、0.95、1.05。</p>
+
+        <h3>亚盘即时盘</h3>
+        <div class="grid-3">
+          <div><label for="ah1">主队盘口</label><input id="ah1" list="handicapList" type="number" step="0.25" value="0"></div>
+          <div><label for="hw1">主队水位</label><input id="hw1" type="number" step="0.01" value="0.83"></div>
+          <div><label for="aw1">客队水位</label><input id="aw1" type="number" step="0.01" value="0.80"></div>
+        </div>
+
+        <datalist id="handicapList"></datalist>
+
+        <h3>欧赔初盘</h3>
+        <div class="grid-3">
+          <div><label for="eh0">主胜</label><input id="eh0" type="number" step="0.01" min="1.01" value="3.00"></div>
+          <div><label for="ed0">平局</label><input id="ed0" type="number" step="0.01" min="1.01" value="2.90"></div>
+          <div><label for="ea0">客胜</label><input id="ea0" type="number" step="0.01" min="1.01" value="2.40"></div>
+        </div>
+
+        <h3>欧赔即时盘</h3>
+        <div class="grid-3">
+          <div><label for="eh1">主胜</label><input id="eh1" type="number" step="0.01" min="1.01" value="2.70"></div>
+          <div><label for="ed1">平局</label><input id="ed1" type="number" step="0.01" min="1.01" value="2.88"></div>
+          <div><label for="ea1">客胜</label><input id="ea1" type="number" step="0.01" min="1.01" value="2.70"></div>
+        </div>
+
+        <h3>总进球初盘</h3>
+        <div class="grid-3">
+          <div><label for="goalLine0">大小球盘口</label><select id="goalLine0"></select></div>
+          <div><label for="over0">大球水位</label><input id="over0" type="number" step="0.01" value="1.20"></div>
+          <div><label for="under0">小球水位</label><input id="under0" type="number" step="0.01" value="0.62"></div>
+        </div>
+
+        <h3>总进球即时盘</h3>
+        <div class="grid-3">
+          <div><label for="goalLine1">大小球盘口</label><select id="goalLine1"></select></div>
+          <div><label for="over1">大球水位</label><input id="over1" type="number" step="0.01" value="0.53"></div>
+          <div><label for="under1">小球水位</label><input id="under1" type="number" step="0.01" value="1.40"></div>
+        </div>
+
+        <h3>当前比分</h3>
+        <div class="grid-3">
+          <div><label for="homeScore">主队进球</label><select id="homeScore"></select></div>
+          <div><label for="awayScore">客队进球</label><select id="awayScore"></select></div>
+          <div>
+            <label for="matchPhase">比赛阶段</label>
+            <select id="matchPhase">
+              <option value="pre">赛前/未开赛</option>
+              <option value="0-15">0-15分钟</option>
+              <option value="16-30">16-30分钟</option>
+              <option value="31-45">31-45+分钟</option>
+              <option value="ht">中场</option>
+              <option value="46-60">46-60分钟</option>
+              <option value="61-75">61-75分钟</option>
+              <option value="76-90">76-90+分钟</option>
+            </select>
+          </div>
+        </div>
+        <p class="hint">赛中分析建议同步填写阶段；同样的盘口变化，在开场和最后 15 分钟含义不一样。</p>
+
+        <h3>资金计划</h3>
+        <div class="grid-2">
+          <div><label for="plannedStake">本场计划投入金额</label><input id="plannedStake" type="number" step="1" min="0" value="100"></div>
+        </div>
+        <p class="hint">只填写你愿意承担风险的金额。工具会按盘口价值等级给出分配建议，中性和谨慎方向默认不分配。</p>
+        <div class="form-actions">
+          <button class="primary" id="startAnalysisBtn" type="button">开始分析</button>
+          <button class="primary" id="recordBtn" type="button">记录当前节点</button>
+          <button id="clearHistoryBtn" type="button">清空过程</button>
+        </div>
+      </section>
+
+      <div class="results" data-panel="results">
+        <section class="recommendation-card result-section" data-section="dashboard">
+          <h2>当前推荐</h2>
+          <p class="recommendation-title" id="recommendationTitle">等待分析</p>
+          <p class="recommendation-subtitle" id="recommendationSubtitle">填入盘口后，这里会先给出最直观的投注价值和风险提醒。</p>
+          <div class="decision-strip" id="decisionStrip"></div>
+          <div class="risk-tags" id="riskTags"></div>
+          <div class="tags" id="recommendationTags"></div>
+          <div class="quick-stats" id="quickStats"></div>
+        </section>
+
+        <div class="dashboard-grid result-section" data-section="dashboard">
+          <section class="card">
+            <h2>优先关注方向</h2>
+            <div class="table-wrap">
+              <table class="value-mobile-table">
+                <thead><tr><th>方向</th><th>价值等级</th><th>建议</th><th>看人话解释</th></tr></thead>
+                <tbody id="valueTable"></tbody>
+              </table>
+            </div>
+            <p class="note">这里先显示能不能下注、该偏向哪边；不是保证命中，而是把盘口信号一致的方向排到前面。</p>
+          </section>
+
+          <section class="summary">
+            <p class="verdict" id="verdict">等待分析</p>
+            <p id="summaryText"></p>
+            <div class="tags" id="tags"></div>
+          </section>
+        </div>
+
+        <section class="card result-section" data-section="dashboard">
+          <h2>资金分配建议</h2>
+          <div class="allocation-grid">
+            <div class="allocation-plan">
+              <h3>标准资金计划</h3>
+              <div class="table-wrap">
+                <table class="allocation-mobile-table">
+                  <thead><tr><th>方向</th><th>建议金额</th><th>占比</th><th>理由</th></tr></thead>
+                  <tbody id="fullAllocationTable"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="allocation-plan">
+              <h3>保守资金计划</h3>
+              <div class="table-wrap">
+                <table class="allocation-mobile-table">
+                  <thead><tr><th>方向</th><th>建议金额</th><th>占比</th><th>理由</th></tr></thead>
+                  <tbody id="reserveAllocationTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <p class="note" id="allocationNote"></p>
+        </section>
+
+        <section class="card result-section" data-section="dashboard">
+          <h2>综合解读</h2>
+          <ul class="analysis-list" id="finalList"></ul>
+        </section>
+
+        <section class="card result-section" data-section="saved">
+          <h2>保存记录</h2>
+          <div class="match-cache">
+            <div class="match-list" id="dailyMatchList"></div>
+          </div>
+          <p class="note">最多保存 6 场，只保留 24 小时。点“载入”会回到填写页并恢复当时的数据。</p>
+        </section>
+
+        <section class="card pro-details result-section" data-section="pro">
+          <details open>
+            <summary>核心概率</summary>
+            <div class="pro-body">
+              <div class="metrics" id="metrics"></div>
+              <div class="probability-details" id="probabilityDetails"></div>
+              <p class="note">概率为去除返还率影响后的归一化隐含概率，只代表赔率所表达的市场定价，不等于真实赛果概率。</p>
+            </div>
+          </details>
+        </section>
+
+        <section class="card pro-details result-section" data-section="pro">
+          <details>
+            <summary>欧赔结构变化</summary>
+            <div class="pro-body">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>项目</th><th>初盘</th><th>即时</th><th>变化</th><th>含义</th></tr></thead>
+                  <tbody id="euroTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section class="card pro-details result-section" data-section="pro">
+          <details>
+            <summary>亚盘与欧亚一致性</summary>
+            <div class="pro-body"><ul class="analysis-list" id="asianList"></ul></div>
+          </details>
+        </section>
+
+        <section class="card pro-details result-section" data-section="pro">
+          <details>
+            <summary>进球后赔率与盘口变化</summary>
+            <div class="pro-body"><ul class="analysis-list" id="scoreList"></ul></div>
+          </details>
+        </section>
+
+        <section class="card pro-details result-section" data-section="pro">
+          <details>
+            <summary>总进球盘口分析</summary>
+            <div class="pro-body"><ul class="analysis-list" id="totalGoalList"></ul></div>
+          </details>
+        </section>
+
+        <section class="card pro-details result-section" data-section="pro">
+          <details>
+            <summary>比赛过程记录</summary>
+            <div class="pro-body">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>节点</th><th>比分</th><th>欧赔</th><th>亚盘</th><th>大小球</th><th>阶段解读</th></tr></thead>
+                  <tbody id="historyTable"></tbody>
+                </table>
+              </div>
+              <p class="note">每次进球或盘口明显变化后，更新即时数据并点击“记录当前节点”，这里会保留整个变化过程。</p>
+            </div>
+          </details>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const handicapOptions = Array.from({ length: 41 }, (_, index) => -5 + index * 0.25);
+    const goalLineOptions = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 4.25, 4.5, 4.75, 5, 5.25, 5.5, 5.75, 6];
+
+    const ids = ["homeTeam", "awayTeam", "eh0", "ed0", "ea0", "eh1", "ed1", "ea1", "ah0", "ah1", "hw0", "aw0", "hw1", "aw1", "goalLine0", "over0", "under0", "goalLine1", "over1", "under1", "homeScore", "awayScore", "matchPhase", "plannedStake"];
+    const CASE_VERSION = "case-2026-06-07-user-001";
+    const DAILY_CACHE_KEY = "footballOddsDailyMatches";
+    const ALLOCATION_LEDGER_KEY = "footballOddsAllocationLedger";
+    const SCORE_PREDICTION_KEY = "footballOddsFirstScorePredictions";
+    const SCORE_PREDICTION_VERSION = "score-euro-first-v2";
+    const MATCH_HISTORY_KEY = "footballOddsMatchHistories";
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    const DEFAULT_CASE = {
+      eh0: 3.0, ed0: 2.9, ea0: 2.4,
+      eh1: 2.7, ed1: 2.88, ea1: 2.7,
+      ah0: -0.25, hw0: 0.73, aw0: 1.07,
+      ah1: 0, hw1: 0.83, aw1: 0.8,
+      goalLine0: 2.5, over0: 1.2, under0: 0.62,
+      goalLine1: 1.5, over1: 0.53, under1: 1.4,
+      homeTeam: "法国", awayTeam: "巴西",
+      homeScore: 0, awayScore: 0, matchPhase: "pre", plannedStake: 100
+    };
+    let latestValueRows = [];
+    let currentMatchKey = "";
+    let analysisLockedUntil = 0;
+    let analysisTimer = null;
+    let allowSaveCurrentInputs = false;
+    let latestConservativeAdvice = [];
+    const $ = id => document.getElementById(id);
+    const fmt = n => Number.isFinite(n) ? n.toFixed(2) : "-";
+    const pct = n => Number.isFinite(n) ? (n * 100).toFixed(1) + "%" : "-";
+
+    function fillHandicaps() {
+      const list = $("handicapList");
+      if (list) {
+        list.innerHTML = "";
+        handicapOptions.forEach(value => {
+          const opt = document.createElement("option");
+          opt.value = String(value);
+          list.appendChild(opt);
+        });
+      }
+      ["ah0", "ah1"].forEach(id => {
+        const el = $(id);
+        el.setAttribute("inputmode", "decimal");
+      });
+      $("ah0").value = String(DEFAULT_CASE.ah0);
+      $("ah1").value = String(DEFAULT_CASE.ah1);
+    }
+
+    function fillGoalLines() {
+      ["goalLine0", "goalLine1"].forEach(id => {
+        const el = $(id);
+        goalLineOptions.forEach(value => {
+          const opt = document.createElement("option");
+          opt.value = value;
+          opt.textContent = value.toString();
+          el.appendChild(opt);
+        });
+      });
+      $("goalLine0").value = String(DEFAULT_CASE.goalLine0);
+      $("goalLine1").value = String(DEFAULT_CASE.goalLine1);
+    }
+
+    function fillScores() {
+      ["homeScore", "awayScore"].forEach(id => {
+        const el = $(id);
+        for (let i = 0; i <= 9; i += 1) {
+          const opt = document.createElement("option");
+          opt.value = i;
+          opt.textContent = String(i);
+          el.appendChild(opt);
+        }
+      });
+      $("homeScore").value = String(DEFAULT_CASE.homeScore);
+      $("awayScore").value = String(DEFAULT_CASE.awayScore);
+    }
+
+    function splitLegacyMatchName(name = "") {
+      const text = String(name || "").trim();
+      if (!text) return { homeTeam: "", awayTeam: "" };
+      const parts = text.split(/\s*(?:vs|VS|v|V|对|[-—–])\s*/).filter(Boolean);
+      if (parts.length >= 2) return { homeTeam: parts[0].trim(), awayTeam: parts.slice(1).join(" ").trim() };
+      return { homeTeam: text, awayTeam: "" };
+    }
+
+    function normalizeMatchValues(values = {}) {
+      const next = { ...values };
+      if ((!next.homeTeam && !next.awayTeam) && next.matchName) {
+        Object.assign(next, splitLegacyMatchName(next.matchName));
+      }
+      next.homeTeam = String(next.homeTeam || "").trim();
+      next.awayTeam = String(next.awayTeam || "").trim();
+      next.matchName = matchDisplayName(next);
+      return next;
+    }
+
+    function matchDisplayName(values = valuesObject()) {
+      const homeTeam = String(values.homeTeam || "").trim();
+      const awayTeam = String(values.awayTeam || "").trim();
+      if (homeTeam && awayTeam) return `${homeTeam} vs ${awayTeam}`;
+      return homeTeam || awayTeam || String(values.matchName || "").trim();
+    }
+
+    function matchKeyFromValues(values = valuesObject()) {
+      const name = matchDisplayName(values);
+      return name.length >= 2 ? name.toLowerCase() : "";
+    }
+
+    function applyCase(data) {
+      Object.entries(normalizeMatchValues(data)).forEach(([id, value]) => {
+        if ($(id)) $(id).value = value;
+      });
+    }
+
+    function valuesObject() {
+      return normalizeMatchValues(Object.fromEntries(ids.map(id => [id, $(id).value])));
+    }
+
+    function dailyCache() {
+      const now = Date.now();
+      try {
+        const rows = JSON.parse(localStorage.getItem(DAILY_CACHE_KEY) || "[]");
+        const validRows = rows
+          .filter(row => row && row.updatedAt && now - row.updatedAt <= DAY_MS && row.values)
+          .map(row => {
+            const values = normalizeMatchValues(row.values);
+            const name = row.name || matchDisplayName(values);
+            return { ...row, name, key: row.key || name.toLowerCase(), values };
+          });
+        if (validRows.length !== rows.length) saveDailyCache(validRows);
+        return validRows;
+      } catch {
+        return [];
+      }
+    }
+
+    function saveDailyCache(rows) {
+      localStorage.setItem(DAILY_CACHE_KEY, JSON.stringify(rows.slice(0, 6)));
+    }
+
+    function allocationLedger() {
+      try {
+        const rows = JSON.parse(localStorage.getItem(ALLOCATION_LEDGER_KEY) || "[]");
+        const now = Date.now();
+        const validRows = rows.filter(row => row && row.matchKey && row.updatedAt && now - row.updatedAt <= DAY_MS && Array.isArray(row.items));
+        if (validRows.length !== rows.length) localStorage.setItem(ALLOCATION_LEDGER_KEY, JSON.stringify(validRows));
+        return validRows;
+      } catch {
+        localStorage.removeItem(ALLOCATION_LEDGER_KEY);
+        return [];
+      }
+    }
+
+    function saveAllocationLedger(rows) {
+      localStorage.setItem(ALLOCATION_LEDGER_KEY, JSON.stringify(rows.slice(0, 6)));
+    }
+
+    function scorePredictionCache() {
+      try {
+        const rows = JSON.parse(localStorage.getItem(SCORE_PREDICTION_KEY) || "[]");
+        const now = Date.now();
+        const validRows = rows.filter(row => row && row.version === SCORE_PREDICTION_VERSION && row.matchKey && row.createdAt && now - row.createdAt <= DAY_MS && Array.isArray(row.scores));
+        if (validRows.length !== rows.length) localStorage.setItem(SCORE_PREDICTION_KEY, JSON.stringify(validRows));
+        return validRows;
+      } catch {
+        localStorage.removeItem(SCORE_PREDICTION_KEY);
+        return [];
+      }
+    }
+
+    function saveScorePredictionCache(rows) {
+      localStorage.setItem(SCORE_PREDICTION_KEY, JSON.stringify(rows.slice(0, 6)));
+    }
+
+    function matchLedgerKey() {
+      return currentMatchKey || matchKeyFromValues();
+    }
+
+    function syncCurrentMatchKeyFromName() {
+      const key = matchKeyFromValues();
+      if (key) currentMatchKey = key;
+    }
+
+    function currentNodeKey() {
+      return ["matchPhase", "homeScore", "awayScore", "eh1", "ed1", "ea1", "ah1", "hw1", "aw1", "goalLine1", "over1", "under1"]
+        .map(id => `${id}:${$(id)?.value || ""}`)
+        .join("|");
+    }
+
+    function currentLedgerEntry() {
+      const key = matchLedgerKey();
+      return key ? allocationLedger().find(row => row.matchKey === key) : null;
+    }
+
+    function saveConservativeAdvice() {
+      const matchKey = matchLedgerKey();
+      const nodeKey = currentNodeKey();
+      if (!matchKey || !latestConservativeAdvice.length) return;
+      const rows = allocationLedger();
+      let entry = rows.find(row => row.matchKey === matchKey);
+      if (!entry) {
+        entry = { matchKey, updatedAt: Date.now(), items: [] };
+        rows.unshift(entry);
+      }
+      if (entry.items.some(item => item.nodeKey === nodeKey)) return;
+      const scoreText = `${$("homeScore")?.value || 0}-${$("awayScore")?.value || 0}`;
+      const phase = phaseLabel($("matchPhase")?.value || "pre");
+      latestConservativeAdvice.forEach(row => {
+        entry.items.push({
+          nodeKey,
+          name: row.name,
+          amount: row.amount,
+          score: row.score,
+          updatedAt: Date.now(),
+          phase,
+          scoreText
+        });
+      });
+      entry.updatedAt = Date.now();
+      saveAllocationLedger(rows);
+    }
+
+    function renderDailyMatches() {
+      const list = $("dailyMatchList");
+      if (!list) return;
+      const rows = dailyCache().sort((a, b) => b.updatedAt - a.updatedAt);
+      if (!rows.length) {
+        list.innerHTML = `<p class="hint">填写主队和客队后，点“开始分析”保存的场次会出现在这里；超过 24 小时会自动清理。</p>`;
+        return;
+      }
+      list.innerHTML = rows.map(row => {
+        const values = row.values || {};
+        const score = `${values.homeScore || 0}-${values.awayScore || 0}`;
+        const time = new Date(row.updatedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
+        return `
+          <div class="match-chip" data-match-key="${row.key}">
+            <span><b>${row.name}</b><span>比分 ${score}，${time} 更新</span></span>
+            <button type="button" data-action="load">载入</button>
+            <button class="danger" type="button" data-action="delete">删除</button>
+          </div>
+        `;
+      }).join("");
+      list.querySelectorAll(".match-chip").forEach(button => {
+        button.addEventListener("click", event => {
+          const action = event.target?.dataset?.action;
+          if (action === "delete") deleteDailyMatch(button.dataset.matchKey);
+          else loadDailyMatch(button.dataset.matchKey);
+        });
+      });
+    }
+
+    function saveCurrentInputs() {
+      if (!allowSaveCurrentInputs) return;
+      const values = valuesObject();
+      localStorage.setItem("footballOddsInputs", JSON.stringify({
+        caseVersion: CASE_VERSION,
+        savedAt: Date.now(),
+        values
+      }));
+
+      const name = matchDisplayName(values);
+      if (!name) {
+        renderDailyMatches();
+        return;
+      }
+      if (name.length < 2) {
+        renderDailyMatches();
+        return;
+      }
+      const normalizedName = matchKeyFromValues(values);
+      if (!currentMatchKey || currentMatchKey !== normalizedName) currentMatchKey = normalizedName;
+      const rows = dailyCache().filter(row => row.key !== currentMatchKey);
+      rows.unshift({ key: currentMatchKey, name, updatedAt: Date.now(), values, history: loadHistory(currentMatchKey) });
+      saveDailyCache(rows);
+      renderDailyMatches();
+    }
+
+    function loadDailyMatch(key) {
+      const row = dailyCache().find(item => item.key === key);
+      if (!row) return;
+      currentMatchKey = row.key;
+      const values = normalizeMatchValues(row.values);
+      ids.forEach(id => {
+        if (values[id] !== undefined) $(id).value = values[id];
+      });
+      analyze();
+      renderHistory();
+      setActiveView("input");
+    }
+
+    function deleteDailyMatch(key) {
+      const rows = dailyCache().filter(row => row.key !== key);
+      if (currentMatchKey === key) currentMatchKey = "";
+      saveDailyCache(rows);
+      saveAllocationLedger(allocationLedger().filter(row => row.matchKey !== key));
+      saveScorePredictionCache(scorePredictionCache().filter(row => row.matchKey !== key));
+      removeMatchHistory(key);
+      renderDailyMatches();
+      renderHistory();
+    }
+
+    function prepareNumberInputs() {
+      document.querySelectorAll('input[type="number"]').forEach(input => {
+        input.setAttribute("inputmode", "decimal");
+        input.addEventListener("focus", event => {
+          event.target.select();
+        });
+        input.addEventListener("mouseup", event => {
+          event.preventDefault();
+        });
+      });
+    }
+
+    function setActiveView(view) {
+      if (!["input", "dashboard", "saved", "pro"].includes(view)) view = "dashboard";
+      if ((view === "dashboard" || view === "pro") && Date.now() < analysisLockedUntil) return;
+      document.querySelectorAll(".view-tab").forEach(button => {
+        button.classList.toggle("active", button.dataset.view === view);
+      });
+      $("plannedStake")?.blur();
+      const inputPanel = document.querySelector('[data-panel="input"]');
+      const resultsPanel = document.querySelector('[data-panel="results"]');
+      inputPanel.classList.toggle("active-panel", view === "input");
+      resultsPanel.classList.toggle("active-panel", view !== "input");
+      document.querySelectorAll(".result-section").forEach(section => {
+        const views = (section.dataset.section || "").split(" ");
+        section.classList.toggle("active-section", views.includes(view));
+      });
+      localStorage.setItem("footballOddsActiveView", view);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function setResultTabsLocked(locked) {
+      document.querySelectorAll('.view-tab[data-view="dashboard"], .view-tab[data-view="pro"]').forEach(button => {
+        button.disabled = locked;
+      });
+    }
+
+    function startAnalysis() {
+      syncCurrentMatchKeyFromName();
+      analyze();
+      allowSaveCurrentInputs = true;
+      saveCurrentInputs();
+      allowSaveCurrentInputs = false;
+      ensureFirstScorePredictionFromInputs();
+      analyze();
+      renderHistory();
+      setActiveView("input");
+      const button = $("startAnalysisBtn");
+      analysisLockedUntil = Date.now() + 3000;
+      setResultTabsLocked(true);
+      clearInterval(analysisTimer);
+      const tick = () => {
+        const seconds = Math.max(0, Math.ceil((analysisLockedUntil - Date.now()) / 1000));
+        button.textContent = seconds > 0 ? `分析中 ${seconds}s` : "开始分析";
+        button.disabled = seconds > 0;
+        if (seconds <= 0) {
+          clearInterval(analysisTimer);
+          analysisTimer = null;
+          setResultTabsLocked(false);
+          setActiveView("dashboard");
+        }
+      };
+      tick();
+      analysisTimer = setInterval(tick, 250);
+    }
+
+    function val(id) {
+      const n = Number($(id).value);
+      return Number.isFinite(n) ? n : NaN;
+    }
+
+    function implied(home, draw, away) {
+      const raw = [1 / home, 1 / draw, 1 / away];
+      const sum = raw.reduce((a, b) => a + b, 0);
+      const normalized = raw.map(x => x / sum);
+      return {
+        rawHome: raw[0],
+        rawDraw: raw[1],
+        rawAway: raw[2],
+        home: normalized[0],
+        draw: normalized[1],
+        away: normalized[2],
+        fairHome: 1 / normalized[0],
+        fairDraw: 1 / normalized[1],
+        fairAway: 1 / normalized[2],
+        totalRaw: sum,
+        margin: sum - 1
+      };
+    }
+
+    function pp(n) {
+      if (!Number.isFinite(n)) return "-";
+      const sign = n > 0 ? "+" : "";
+      return `${sign}${(n * 100).toFixed(1)}个百分点`;
+    }
+
+    function pressureText(name, odd0, odd1, prob0, prob1) {
+      const oddDelta = odd1 - odd0;
+      const probDelta = prob1 - prob0;
+      if (Math.abs(probDelta) < 0.006 && Math.abs(oddDelta) < 0.04) {
+        return `${name}的赔率和去水概率变化都很小，说明这个结果暂时不是主要调整方向。`;
+      }
+      if (oddDelta < 0 && probDelta > 0) {
+        return `${name}赔率下降、去水概率上升，说明市场定价在加强这个结果，博彩公司对这一项的赔付防范更明显。`;
+      }
+      if (oddDelta > 0 && probDelta < 0) {
+        return `${name}赔率上升、去水概率下降，说明这个结果在即时盘里被弱化，博彩公司愿意给出更高回报来承接该方向。`;
+      }
+      if (oddDelta < 0) return `${name}赔率下降，但去水概率变化不大，更多可能是结构性调赔或水位平衡。`;
+      return `${name}赔率上升，但去水概率变化不大，说明该项被轻微放松，暂时不是核心防范点。`;
+    }
+
+    function renderProbabilityDetails(e0, e1, p0, p1) {
+      const rows = [
+        ["主胜", e0[0], e1[0], p0.rawHome, p1.rawHome, p0.home, p1.home, p1.fairHome],
+        ["平局", e0[1], e1[1], p0.rawDraw, p1.rawDraw, p0.draw, p1.draw, p1.fairDraw],
+        ["客胜", e0[2], e1[2], p0.rawAway, p1.rawAway, p0.away, p1.away, p1.fairAway]
+      ];
+      const strongest = rows.slice().sort((a, b) => Math.abs(b[6] - b[5]) - Math.abs(a[6] - a[5]))[0];
+      const explanation = [
+        `欧赔的第一步是取倒数：例如即时主胜 ${fmt(e1[0])}，原始隐含概率就是 1 / ${fmt(e1[0])} = ${pct(p1.rawHome)}。`,
+        `三项原始概率相加通常会超过 100%，即时盘合计为 ${pct(p1.totalRaw)}，多出来的 ${pct(p1.margin)} 可以理解为赔率边际或水钱。`,
+        `为了比较胜平负真实的相对权重，工具会把三项按总和归一化。归一化后即时盘为：主胜 ${pct(p1.home)}，平局 ${pct(p1.draw)}，客胜 ${pct(p1.away)}。`,
+        `变化最大的方向是${strongest[0]}，去水概率从 ${pct(strongest[5])} 到 ${pct(strongest[6])}，变化 ${pp(strongest[6] - strongest[5])}。`
+      ];
+
+      $("probabilityDetails").innerHTML = `
+        <div class="detail-block">
+          <h3>隐含概率怎么算</h3>
+          <ul class="analysis-list">${explanation.map(x => `<li>${x}</li>`).join("")}</ul>
+        </div>
+        <div class="detail-block">
+          <h3>即时盘去水后对应的“公平赔率”</h3>
+          <div class="mini-grid">
+            ${rows.map(row => `
+              <div class="mini-cell">
+                <b>${row[0]} ${fmt(row[7])}</b>
+                <span>去水概率 ${pct(row[6])}</span>
+                <span>市场赔率 ${fmt(row[2])}</span>
+              </div>
+            `).join("")}
+            <div class="mini-cell">
+              <b>边际 ${pct(p1.margin)}</b>
+              <span>原始合计 ${pct(p1.totalRaw)}</span>
+              <span>${p1.margin > p0.margin + 0.005 ? "即时盘更保守" : p1.margin < p0.margin - 0.005 ? "即时盘更开放" : "边际基本稳定"}</span>
+            </div>
+          </div>
+        </div>
+        <div class="detail-block">
+          <h3>概率变化解读</h3>
+          <ul class="analysis-list">
+            ${rows.map(([name, odd0, odd1,, , prob0, prob1]) => `<li>${pressureText(name, odd0, odd1, prob0, prob1)}</li>`).join("")}
+          </ul>
+        </div>
+      `;
+    }
+
+    function renderScoreAnalysis(homeScore, awayScore, e0, e1, p0, p1, ah0, ah1, hw0, hw1, aw0, aw1) {
+      const items = [];
+      const totalGoals = homeScore + awayScore;
+      const scoreText = `${homeScore}-${awayScore}`;
+      const hMove = ah1 - ah0;
+      const homeProbMove = p1.home - p0.home;
+      const drawProbMove = p1.draw - p0.draw;
+      const awayProbMove = p1.away - p0.away;
+      const homeOddMove = e1[0] - e0[0];
+      const drawOddMove = e1[1] - e0[1];
+      const awayOddMove = e1[2] - e0[2];
+      const homeWaterMove = hw1 - hw0;
+      const awayWaterMove = aw1 - aw0;
+
+      if (totalGoals === 0) {
+        items.push("当前比分是 0-0，这一栏按赛前或未进球状态解读。此时重点看初盘到即时盘是否因为临场信息、资金流或首发变化而改变，而不是进球后的再定价。");
+      } else if (homeScore > awayScore) {
+        items.push(`当前比分是 ${scoreText}，主队领先。进球后正常情况下主胜赔率应下降、主胜隐含概率应上升；如果同时亚盘向主队加深，说明博彩公司不仅认可主队领先，还认为主队继续扩大或守住优势的能力较强。`);
+        if (homeOddMove < -0.08 && homeProbMove > 0.015) items.push(`主胜赔率下降 ${Math.abs(homeOddMove).toFixed(2)}，主胜去水概率上升 ${pp(homeProbMove)}，这是对领先方比较直接的支持。`);
+        if (homeOddMove >= -0.03 || homeProbMove < 0.008) items.push("主队已经领先，但主胜赔率没有明显下压，说明博彩公司对主队守胜信心并不强，可能在防平或防客队反扑。");
+        if (drawProbMove > 0.01 || e1[1] < e0[1] - 0.08) items.push("主队领先后平局概率反而被抬高或平赔被压低，要重点警惕领先方被追平的风险。");
+        if (awayProbMove > 0.008 || awayOddMove < -0.08) items.push("客胜方向没有被明显放弃，甚至被压低，说明机构仍在防范客队逆转或至少持续施压。");
+        if (hMove < -0.01) items.push(`亚盘从 ${handicapText(ah0)} 到 ${handicapText(ah1)}，盘口向主队加深，属于领先方继续被抬高的信号。`);
+        else if (hMove > 0.01) items.push(`亚盘从 ${handicapText(ah0)} 到 ${handicapText(ah1)}，盘口反而退向客队方向，这和主队领先并不完全匹配，说明机构对主队打穿或继续占优态度谨慎。`);
+      } else if (awayScore > homeScore) {
+        items.push(`当前比分是 ${scoreText}，客队领先。进球后正常情况下客胜赔率应下降、客胜隐含概率应上升；如果亚盘也向客队方向移动，说明博彩公司认可客队领先后的局面。`);
+        if (awayOddMove < -0.08 && awayProbMove > 0.015) items.push(`客胜赔率下降 ${Math.abs(awayOddMove).toFixed(2)}，客胜去水概率上升 ${pp(awayProbMove)}，这是对客队领先优势的直接确认。`);
+        if (awayOddMove >= -0.03 || awayProbMove < 0.008) items.push("客队已经领先，但客胜赔率没有明显下压，说明博彩公司没有充分确认客队能守住胜势，需要防主队反扑。");
+        if (drawProbMove > 0.01 || e1[1] < e0[1] - 0.08) items.push("客队领先后平局被加强，通常代表机构对主队扳平有防范。");
+        if (homeProbMove > 0.008 || homeOddMove < -0.08) items.push("主胜方向没有被明显放弃，甚至被压低，说明机构仍在给主队反扑或逆转留空间。");
+        if (hMove > 0.01) items.push(`亚盘从 ${handicapText(ah0)} 到 ${handicapText(ah1)}，盘口向客队方向移动，符合客队领先后的再定价。`);
+        else if (hMove < -0.01) items.push(`亚盘从 ${handicapText(ah0)} 到 ${handicapText(ah1)}，盘口反而向主队加深，这和客队领先相冲突，往往说明机构仍更看重主队基本面或主队反扑能力。`);
+      } else {
+        items.push(`当前比分是 ${scoreText}，双方打平。打平后的赔率变化主要看博彩公司是否重新回到赛前强弱定位，还是开始增强平局防范。`);
+        if (drawProbMove > 0.012 || drawOddMove < -0.08) items.push("平局概率上升或平赔下降，说明机构对比赛继续僵持的防范增强。");
+        if (homeProbMove > awayProbMove + 0.01) items.push("打平状态下主胜概率增长更明显，说明机构更倾向主队后续重新取得优势。");
+        if (awayProbMove > homeProbMove + 0.01) items.push("打平状态下客胜概率增长更明显，说明机构更倾向客队后续取得优势。");
+        if (Math.abs(hMove) < 0.01 && Math.abs(homeWaterMove) < 0.04 && Math.abs(awayWaterMove) < 0.04) items.push("盘口和水位变化都不大，说明进球或比分变化后市场暂时没有明显偏向一边。");
+      }
+
+      if (homeWaterMove > 0.05) items.push("主队水位明显升高，代表买主队方向的回报变高，机构对主队打出结果的态度更谨慎。");
+      if (homeWaterMove < -0.05) items.push("主队水位明显降低，代表主队方向被压低，机构对主队方向有更多防范。");
+      if (awayWaterMove > 0.05) items.push("客队水位明显升高，代表机构对客队方向打出的态度更谨慎。");
+      if (awayWaterMove < -0.05) items.push("客队水位明显降低，代表客队方向被压低，机构对客队方向有更多防范。");
+
+      $("scoreList").innerHTML = items.map(x => `<li>${x}</li>`).join("");
+    }
+
+    function renderTotalGoalAnalysis(homeScore, awayScore, line0, line1, over0, over1, under0, under1) {
+      const items = [];
+      const goals = homeScore + awayScore;
+      const lineMove = line1 - line0;
+      const overMove = over1 - over0;
+      const underMove = under1 - under0;
+
+      items.push(`当前总进球为 ${goals}，大小球初盘 ${line0}，即时盘 ${line1}。`);
+      if (lineMove > 0.01) items.push(`大小球盘口上调 ${lineMove.toFixed(2)}，说明市场对后续进球预期增强，或进球/节奏已经迫使机构提高总进球门槛。`);
+      else if (lineMove < -0.01) items.push(`大小球盘口下调 ${Math.abs(lineMove).toFixed(2)}，说明机构对后续进球预期下降，比赛节奏或进攻效率可能不如初始预期。`);
+      else items.push("大小球盘口没有变化，重点看大球和小球水位谁被压低。");
+
+      if (overMove < -0.05) items.push(`大球水位从 ${fmt(over0)} 降到 ${fmt(over1)}，大球方向被压低，说明机构在防范继续出球。`);
+      if (overMove > 0.05) items.push(`大球水位从 ${fmt(over0)} 升到 ${fmt(over1)}，大球回报变高，说明机构对继续出球的态度更谨慎。`);
+      if (underMove < -0.05) items.push(`小球水位从 ${fmt(under0)} 降到 ${fmt(under1)}，小球方向被压低，说明机构在防范比赛降速或进球停滞。`);
+      if (underMove > 0.05) items.push(`小球水位从 ${fmt(under0)} 升到 ${fmt(under1)}，小球回报变高，说明机构对小球打出的态度更谨慎。`);
+
+      const remainingGap = line1 - goals;
+      if (goals > 0 && remainingGap <= 1) items.push(`当前进球数距离即时盘口只差 ${remainingGap.toFixed(2)} 球，后续再进一球会显著改变大小球结算格局，盘口变化会更敏感。`);
+      if (goals > 0 && lineMove < 0.5 && overMove >= 0) items.push("已经进球但大小球盘口没有明显抬高，且大球没有降水，说明机构并不认为比赛会持续开放。");
+      if (goals > 0 && lineMove >= 0.5 && overMove <= 0) items.push("进球后盘口明显抬高且大球没有明显升水，这是对比赛继续出球较强的表达。");
+
+      $("totalGoalList").innerHTML = items.map(x => `<li>${x}</li>`).join("");
+    }
+
+    function valueGrade(score) {
+      if (score >= 4) return ["偏有价值", "good", "可重点观察"];
+      if (score >= 2) return ["有一定价值", "info", "小注或等待确认"];
+      if (score >= 0) return ["中性", "warn", "只观察"];
+      return ["谨慎", "bad", "不建议追"];
+    }
+
+    function scoreContext(homeScore, awayScore, side) {
+      if (homeScore === awayScore) return 0;
+      if (side === "home") return homeScore > awayScore ? 1 : -1;
+      if (side === "away") return awayScore > homeScore ? 1 : -1;
+      if (side === "draw") return Math.abs(homeScore - awayScore) === 1 ? 1 : -1;
+      return 0;
+    }
+
+    function euroPriceValue(odd) {
+      if (!Number.isFinite(odd)) return { score: 0, tooLow: false, text: "" };
+      if (odd <= 1.25) return { score: -5, tooLow: true, text: `即时赔率 ${fmt(odd)} 太低，回报很薄，不适合为了“稳”去重仓。` };
+      if (odd <= 1.45) return { score: -4, tooLow: true, text: `即时赔率 ${fmt(odd)} 偏低，赢了回报有限，除非盘口信号特别强，否则不划算。` };
+      if (odd <= 1.65) return { score: -3, tooLow: true, text: `即时赔率 ${fmt(odd)} 回报偏薄，更像“看好会赢”，不等于“值得下注”。` };
+      if (odd < 1.8) return { score: -2, tooLow: true, text: `即时赔率 ${fmt(odd)} 低于回测建议区间，胜率高不等于值得下注，默认不做主推。` };
+      if (odd <= 1.85) return { score: -1, tooLow: false, text: `即时赔率 ${fmt(odd)} 回报一般，下注价值需要盘口继续配合。` };
+      if (odd >= 5) return { score: -1, tooLow: false, text: `即时赔率 ${fmt(odd)} 回报高，但打出难度也高，不宜只因为赔率高就追。` };
+      return { score: 0, tooLow: false, text: `即时赔率 ${fmt(odd)} 回报区间尚可，重点看盘口信号是否一致。` };
+    }
+
+
+    function euroMoveValue(openOdd, liveOdd) {
+      if (!Number.isFinite(openOdd) || !Number.isFinite(liveOdd) || openOdd <= 0) return { score: 0, drop: 0, text: "" };
+      const drop = (openOdd - liveOdd) / openOdd;
+      if (drop >= 0.06 && liveOdd >= 1.8) return { score: 2, drop, text: `欧赔较初盘下降 ${pct(drop)}，回测中属于较强市场支持。` };
+      if (drop >= 0.015 && liveOdd >= 1.8) return { score: 1, drop, text: `欧赔较初盘下降 ${pct(drop)}，达到封存回测建议的最低有效降幅。` };
+      if (liveOdd < 1.8) return { score: -1, drop, text: "赔率低于 1.80，即使降赔也先按低回报处理。" };
+      return { score: 0, drop, text: drop > 0 ? `欧赔仅下降 ${pct(drop)}，力度还不够明确。` : "欧赔没有形成降赔支持。" };
+    }
+
+    function euroDrop(openOdd, liveOdd) {
+      if (!Number.isFinite(openOdd) || !Number.isFinite(liveOdd) || openOdd <= 0) return 0;
+      return (openOdd - liveOdd) / openOdd;
+    }
+
+    function probBySide(probs, side) {
+      return side === "home" ? probs.home : side === "draw" ? probs.draw : probs.away;
+    }
+
+    function euroOddBySide(odds, side) {
+      return side === "home" ? odds[0] : side === "draw" ? odds[1] : odds[2];
+    }
+
+    function sideText(side) {
+      return side === "home" ? "主胜" : side === "draw" ? "平局" : "客胜";
+    }
+
+    function euroCoreValue(side, e0, e1, p0, p1) {
+      const openOdd = euroOddBySide(e0, side);
+      const liveOdd = euroOddBySide(e1, side);
+      const prob0 = probBySide(p0, side);
+      const prob1 = probBySide(p1, side);
+      const probMove = prob1 - prob0;
+      const drop = euroDrop(openOdd, liveOdd);
+      const initialGap = Math.abs(p0.home - p0.away);
+      const liveGap = Math.abs(p1.home - p1.away);
+      let score = 0;
+      const notes = [];
+
+      if (probMove >= 0.02) {
+        score += 2.5;
+        notes.push(`${sideText(side)}去水概率明显上升，是欧赔主线信号。`);
+      } else if (probMove >= 0.012) {
+        score += 1.6;
+        notes.push(`${sideText(side)}去水概率上升，欧赔有加强。`);
+      } else if (probMove <= -0.012) {
+        score -= 1.3;
+        notes.push(`${sideText(side)}去水概率下降，欧赔主线不支持。`);
+      }
+
+      if (drop >= 0.06 && liveOdd >= 1.8 && probMove >= 0.01) {
+        score += 1.4;
+        notes.push(`${sideText(side)}降赔与概率上升同步，防范更实。`);
+      } else if (drop >= 0.03 && probMove < 0.006) {
+        score -= 0.7;
+        notes.push(`${sideText(side)}有降赔但概率没有跟上，先按结构性调赔处理。`);
+      } else if (drop >= 0.015 && liveOdd >= 1.8) {
+        score += 0.6;
+        notes.push(`${sideText(side)}有轻微降赔，作为辅助信号。`);
+      }
+
+      if (side === "draw") {
+        if (initialGap < 0.075 && e0[1] <= 3.25) {
+          score += 1.1;
+          notes.push("初赔接近均势且平赔不高，平局底层压力较大。");
+        }
+        if (liveGap < 0.11 && e1[1] <= 3.25) {
+          score += 0.8;
+          notes.push("即时盘仍没有明显拉开胜负差，平局需要保留权重。");
+        }
+      } else {
+        const isInitialFav = side === "home" ? p0.home > p0.away + 0.08 : p0.away > p0.home + 0.08;
+        const isLiveFav = side === "home" ? p1.home > p1.away + 0.08 : p1.away > p1.home + 0.08;
+        if (isInitialFav && isLiveFav && p1.draw < 0.29) {
+          score += 0.7;
+          notes.push(`${sideText(side)}延续初赔优势，且平局压力不高。`);
+        }
+        if (isLiveFav && p1.draw >= 0.30 && e1[1] <= 3.25) {
+          score -= 0.6;
+          notes.push(`${sideText(side)}虽然占优，但平局防范偏重，胜负方向不能给满。`);
+        }
+      }
+
+      return { score, text: notes.join("；") };
+    }
+
+    function asianConfirmValue(side, hMove, waterMove, euroDelta) {
+      let score = 0;
+      const notes = [];
+      if (side === "home") {
+        if (hMove < -0.01) {
+          score += 1.0;
+          notes.push("亚盘向主队加深，是对欧赔主队方向的确认。");
+        } else if (hMove > 0.01) {
+          score -= 1.1;
+          notes.push("亚盘退向客队，对主队方向形成修正。");
+        }
+      } else if (side === "away") {
+        if (hMove > 0.01) {
+          score += 1.0;
+          notes.push("亚盘向客队方向移动，是对欧赔客队方向的确认。");
+        } else if (hMove < -0.01) {
+          score -= 1.1;
+          notes.push("亚盘向主队加深，对客队方向形成修正。");
+        }
+      } else {
+        if (Math.abs(hMove) < 0.01) {
+          score += 0.6;
+          notes.push("亚盘没有明显强化一方，平局判断更容易保留。");
+        } else {
+          score -= 0.6;
+          notes.push("亚盘已有单边调整，平局方向需要降一点权重。");
+        }
+      }
+
+      if (waterMove < -0.05) {
+        score += 0.45;
+        notes.push("对应方向降水，盘口确认度增加。");
+      } else if (waterMove > 0.05) {
+        score -= 0.45;
+        notes.push("对应方向升水，打出阻力增加。");
+      }
+      if (euroDelta > 0.012 && score > 0) score += 0.25;
+      return { score, text: notes.join("；") };
+    }
+
+    function returnShapeValue(kind, price) {
+      if (!Number.isFinite(price)) return { score: 0, text: "" };
+      if (kind === "euro") {
+        if (price < 1.8) return { score: -3, text: "赔率太低，赢了回报太少，直接排除主推。" };
+        if (price <= 3.5) return { score: 1, text: "赔率处在回报和打出难度比较平衡的位置。" };
+        if (price <= 5) return { score: 0, text: "赔率回报高，但打出难度也高，需要盘口信号足够强。" };
+        return { score: -1, text: "赔率过高，不能只因为回报大就追。" };
+      }
+      if (price < 0.65) return { score: -1, text: "水位太低，赢了回报偏少，不适合重仓。" };
+      if (price <= 1.05) return { score: 1, text: "水位处在比较均衡的位置，回报和风险更匹配。" };
+      if (price <= 1.25) return { score: 0, text: "水位偏高，回报更好，但打出阻力也更大。" };
+      return { score: -1, text: "水位过高，不能只因为赢得多就追。" };
+    }
+
+    function marketPriorityValue(name) {
+      if (name.includes("大球") || name.includes("小球")) {
+        return { score: 1.1, rank: 0, text: "" };
+      }
+      if (name.includes("亚盘")) {
+        return { score: 0.55, rank: 1, text: "" };
+      }
+      return { score: -0.35, rank: 2, text: "" };
+    }
+
+    function sealedEdgeTrigger(type, data = {}) {
+      if (type === "draw-drop") {
+        const drop = euroDrop(data.openOdd, data.liveOdd);
+        if (drop >= 0.03 && drop <= 0.15 && data.liveOdd >= 1.8 && data.liveOdd <= 3.5) {
+          return { score: 2.2, tier: "ultra", text: `超精选回测触发：平局赔率下降 ${pct(drop)}，属于高 ROI 的“平局强防”信号。` };
+        }
+      }
+      if (type === "under-sweet") {
+        const scoreTotal = (data.homeScore || 0) + (data.awayScore || 0);
+        const lineMoveOk = data.lineMove <= 0.01;
+        const scoreOk = scoreTotal <= 1 || data.phase === "61-75" || data.phase === "76-90";
+        if (data.water >= 0.75 && data.water <= 1.18 && data.move >= -0.05 && data.move <= 0.04 && lineMoveOk && scoreOk) {
+          return { score: 1.8, tier: "ultra", text: "超精选回测触发：小球水位处在中等回报区间，并且比分/盘口环境没有明显反对小球。" };
+        }
+      }
+      if (type === "asian-balanced") {
+        if (data.water >= 0.85 && data.water <= 1.15 && Math.abs(data.move) <= 0.05) {
+          return { score: 1.0, tier: "calibrated", text: "封存回测触发：亚盘水位处在均衡区间，回报和打出难度更匹配。" };
+        }
+      }
+      return { score: 0, tier: "standard", text: "" };
+    }
+
+    function drawCoverageValue(line, drawScore, drawProb, water) {
+      if (!Number.isFinite(line) || !Number.isFinite(drawScore) || !Number.isFinite(drawProb)) {
+        return { score: 0, text: "" };
+      }
+      const drawSignalStrong = drawScore >= 3 || drawProb >= 0.29;
+      if (!drawSignalStrong || line < 0 || water < 0.65 || water > 1.2) return { score: 0, text: "" };
+      if (line >= 0.5) {
+        return { score: 1.4, text: "平局信号偏强，这个受让方向能覆盖平局结果，容错比直接买平局更高。" };
+      }
+      if (line >= 0.25) {
+        return { score: 0.8, text: "平局信号偏强，这个受让方向有一部分平局保护，容错比单买胜负更好。" };
+      }
+      return { score: 0.4, text: "平局信号偏强，平手盘至少可以在打平时走水，风险比硬买胜负低。" };
+    }
+
+    function phaseLabel(value) {
+      const labels = {
+        pre: "赛前",
+        "0-15": "0-15分钟",
+        "16-30": "16-30分钟",
+        "31-45": "31-45+分钟",
+        ht: "中场",
+        "46-60": "46-60分钟",
+        "61-75": "61-75分钟",
+        "76-90": "76-90+分钟"
+      };
+      return labels[value] || "未填写";
+    }
+
+    function phaseBias(phase, homeScore, awayScore, side) {
+      const late = phase === "76-90";
+      const secondHalf = phase === "61-75" || late;
+      const tied = homeScore === awayScore;
+      if (!secondHalf) return { score: 0, text: "" };
+      if (side === "draw" && tied) return { score: late ? 2 : 1, text: `${phaseLabel(phase)}仍打平，平局和小球的现实权重会提高。` };
+      if (side === "over" && late) return { score: -1, text: "比赛进入尾段，大球需要更强的盘口支持才值得追。" };
+      if (side === "under" && late) return { score: 1, text: "比赛进入尾段，小球方向天然更占时间优势。" };
+      if ((side === "home" && homeScore < awayScore) || (side === "away" && awayScore < homeScore)) {
+        return { score: late ? -2 : -1, text: `${phaseLabel(phase)}仍落后，反扑方向难度更高。` };
+      }
+      return { score: 0, text: "" };
+    }
+
+    function buildRiskTags({ e1, p1, hMove, homeWaterMove, awayWaterMove, goalLineMove, overMove, underMove, consistentHome, consistentAway, inconsistent, phase, homeScore, awayScore }) {
+      const tags = [];
+      const lowPrice = [
+        ["主胜", e1[0], p1.home],
+        ["平局", e1[1], p1.draw],
+        ["客胜", e1[2], p1.away]
+      ].filter(([, odd, prob]) => prob >= 0.6 && euroPriceValue(odd).tooLow);
+      if (lowPrice.length) tags.push(["低赔不划算", "warn"]);
+      if (inconsistent) tags.push(["欧亚分歧", "bad"]);
+      if (p1.draw > 0.285 && Math.abs(p1.home - p1.away) < 0.11) tags.push(["平局风险", "warn"]);
+      if ((consistentHome || consistentAway) && (homeWaterMove > 0.05 || awayWaterMove > 0.05)) tags.push(["看好但赢盘阻力", "warn"]);
+      if (goalLineMove > 0.01 && overMove > 0.04) tags.push(["升盘大球升水", "warn"]);
+      if (goalLineMove < -0.01 && underMove > 0.04) tags.push(["降盘小球升水", "warn"]);
+      if (phase === "76-90" && homeScore === awayScore) tags.push(["尾段平局敏感", "info"]);
+      return tags.slice(0, 5);
+    }
+
+    function renderValueTable(e0, e1, p0, p1, ah0, ah1, hw0, hw1, aw0, aw1, goalLine0, goalLine1, over0, over1, under0, under1, homeScore, awayScore) {
+      const hMove = ah1 - ah0;
+      const homeWaterMove = hw1 - hw0;
+      const awayWaterMove = aw1 - aw0;
+      const lineMove = goalLine1 - goalLine0;
+      const overMove = over1 - over0;
+      const underMove = under1 - under0;
+      const phase = $("matchPhase")?.value || "pre";
+      const rows = [];
+
+      function pushRow(name, baseScore, reasons, edge = { score: 0, text: "" }, modelEdge = { score: 0, tier: "standard", text: "" }) {
+        const priority = marketPriorityValue(name);
+        const score = baseScore + priority.score + (edge.score || 0) + (modelEdge.score || 0);
+        const [grade, cls, action] = valueGrade(score);
+        const allReasons = [priority.text, edge.text, modelEdge.text, ...reasons].filter(Boolean);
+        const modelTier = modelEdge.tier === "ultra" ? "ultra" : modelEdge.tier === "calibrated" ? "calibrated" : "standard";
+        rows.push({
+          name,
+          score,
+          baseScore,
+          modelScore: modelEdge.score || 0,
+          marketRank: priority.rank,
+          modelTier,
+          grade,
+          cls,
+          action,
+          reason: allReasons.join("；") || "盘口信号不明显。"
+        });
+      }
+
+      const homePrice = euroPriceValue(e1[0]);
+      const homeMoveValue = euroMoveValue(e0[0], e1[0]);
+      const homeEuroCore = euroCoreValue("home", e0, e1, p0, p1);
+      const homeAsianConfirm = asianConfirmValue("home", hMove, homeWaterMove, p1.home - p0.home);
+      const homePhase = phaseBias(phase, homeScore, awayScore, "home");
+      let homeScoreValue =
+        homeEuroCore.score +
+        homeAsianConfirm.score +
+        scoreContext(homeScore, awayScore, "home") +
+        homePrice.score +
+        homePhase.score;
+      if (homePrice.tooLow || e1[0] < 1.8) homeScoreValue = Math.min(homeScoreValue, 1);
+      pushRow("竞彩主胜", homeScoreValue, [
+        `主胜去水概率 ${pct(p1.home)}，较初盘 ${pp(p1.home - p0.home)}`,
+        homeEuroCore.text,
+        homeMoveValue.text,
+        homeAsianConfirm.text,
+        homePrice.text,
+        homePhase.text,
+        homeScore > awayScore ? "比分上主队领先，方向与比分一致" : homeScore < awayScore ? "主队落后，主胜属于反扑方向" : ""
+      ], returnShapeValue("euro", e1[0]));
+
+      const drawPrice = euroPriceValue(e1[1]);
+      const drawMoveValue = euroMoveValue(e0[1], e1[1]);
+      const drawEuroCore = euroCoreValue("draw", e0, e1, p0, p1);
+      const drawAsianConfirm = asianConfirmValue("draw", hMove, Math.min(homeWaterMove, awayWaterMove), p1.draw - p0.draw);
+      const drawSealedEdge = sealedEdgeTrigger("draw-drop", { openOdd: e0[1], liveOdd: e1[1] });
+      const drawPhase = phaseBias(phase, homeScore, awayScore, "draw");
+      let drawScoreValue =
+        drawEuroCore.score +
+        drawAsianConfirm.score +
+        (Math.abs(homeScore - awayScore) <= 1 ? 1 : -1) +
+        (Math.max(p1.home, p1.away) - p1.draw > 0.22 ? 1 : 0) +
+        drawPrice.score +
+        drawPhase.score;
+      if (drawPrice.tooLow || e1[1] < 1.8) drawScoreValue = Math.min(drawScoreValue, 1);
+      pushRow("竞彩平局", drawScoreValue, [
+        `平局去水概率 ${pct(p1.draw)}，较初盘 ${pp(p1.draw - p0.draw)}`,
+        drawEuroCore.text,
+        drawMoveValue.text,
+        drawAsianConfirm.text,
+        drawPrice.text,
+        drawPhase.text,
+        Math.abs(homeScore - awayScore) <= 1 ? "当前分差不大，平局仍有分流空间" : "当前分差较大，平局难度上升"
+      ], returnShapeValue("euro", e1[1]), drawSealedEdge);
+
+      const awayPrice = euroPriceValue(e1[2]);
+      const awayMoveValue = euroMoveValue(e0[2], e1[2]);
+      const awayEuroCore = euroCoreValue("away", e0, e1, p0, p1);
+      const awayAsianConfirm = asianConfirmValue("away", hMove, awayWaterMove, p1.away - p0.away);
+      const awayPhase = phaseBias(phase, homeScore, awayScore, "away");
+      let awayScoreValue =
+        awayEuroCore.score +
+        awayAsianConfirm.score +
+        scoreContext(homeScore, awayScore, "away") +
+        awayPrice.score +
+        awayPhase.score;
+      if (awayPrice.tooLow || e1[2] < 1.8) awayScoreValue = Math.min(awayScoreValue, 1);
+      pushRow("竞彩客胜", awayScoreValue, [
+        `客胜去水概率 ${pct(p1.away)}，较初盘 ${pp(p1.away - p0.away)}`,
+        awayEuroCore.text,
+        awayMoveValue.text,
+        awayAsianConfirm.text,
+        awayPrice.text,
+        awayPhase.text,
+        awayScore > homeScore ? "比分上客队领先，方向与比分一致" : awayScore < homeScore ? "客队落后，客胜属于反扑方向" : ""
+      ], returnShapeValue("euro", e1[2]));
+
+      const homeAsianEdge = sealedEdgeTrigger("asian-balanced", { water: hw1, move: homeWaterMove });
+      const homeDrawCoverage = drawCoverageValue(ah1, drawScoreValue, p1.draw, hw1);
+      const homeAsianValue =
+        homeAsianConfirm.score +
+        homeEuroCore.score * 0.55 +
+        scoreContext(homeScore, awayScore, "home") +
+        homeDrawCoverage.score;
+      pushRow(`亚盘主队 ${handicapText(ah1)}`, homeAsianValue, [
+        homeDrawCoverage.text,
+        homeEuroCore.text,
+        homeAsianConfirm.text,
+        hMove < -0.01 ? `盘口加深 ${Math.abs(hMove).toFixed(2)}` : hMove > 0.01 ? `盘口退让 ${hMove.toFixed(2)}` : "盘口未变",
+        homeWaterMove < -0.05 ? "主队降水，防范增强" : homeWaterMove > 0.05 ? "主队升水，赢盘阻力增加" : "主队水位稳定"
+      ], returnShapeValue("water", hw1), homeAsianEdge);
+
+      const awayAsianEdge = sealedEdgeTrigger("asian-balanced", { water: aw1, move: awayWaterMove });
+      const awayDrawCoverage = drawCoverageValue(-ah1, drawScoreValue, p1.draw, aw1);
+      const awayAsianValue =
+        awayAsianConfirm.score +
+        awayEuroCore.score * 0.55 +
+        scoreContext(homeScore, awayScore, "away") +
+        awayDrawCoverage.score;
+      pushRow(`亚盘客队 ${handicapText(-ah1)}`, awayAsianValue, [
+        awayDrawCoverage.text,
+        awayEuroCore.text,
+        awayAsianConfirm.text,
+        hMove > 0.01 ? `盘口向客队方向移动 ${hMove.toFixed(2)}` : hMove < -0.01 ? "盘口向主队加深，客队受压" : "盘口未变",
+        awayWaterMove < -0.05 ? "客队降水，防范增强" : awayWaterMove > 0.05 ? "客队升水，打出阻力增加" : "客队水位稳定"
+      ], returnShapeValue("water", aw1), awayAsianEdge);
+
+      const overValue =
+        (lineMove > 0.01 ? 2 : lineMove < -0.01 ? -2 : 0) +
+        (overMove < -0.05 ? 2 : overMove > 0.05 ? -1 : 0) +
+        (homeScore + awayScore > 0 ? 1 : 0) +
+        phaseBias(phase, homeScore, awayScore, "over").score;
+      pushRow(`大球 ${goalLine1}`, overValue, [
+        lineMove > 0.01 ? `大小球升盘到 ${goalLine1}` : lineMove < -0.01 ? `大小球降盘到 ${goalLine1}` : "大小球盘口未变",
+        overMove < -0.05 ? "大球降水，继续出球被防范" : overMove > 0.05 ? "大球升水，继续出球信心减弱" : "大球水位稳定",
+        phaseBias(phase, homeScore, awayScore, "over").text,
+        homeScore + awayScore > 0 ? `当前已有 ${homeScore + awayScore} 球` : "未进球阶段"
+      ], returnShapeValue("water", over1));
+
+      const underEdge = sealedEdgeTrigger("under-sweet", {
+        water: under1,
+        move: underMove,
+        lineMove,
+        phase,
+        homeScore,
+        awayScore
+      });
+      const underValue =
+        (lineMove < -0.01 ? 2 : lineMove > 0.01 ? -1 : 0) +
+        (underMove < -0.05 ? 2 : underMove > 0.05 ? -1 : 0) -
+        (homeScore + awayScore > 0 && lineMove > 0.01 ? 1 : 0) +
+        phaseBias(phase, homeScore, awayScore, "under").score;
+      pushRow(`小球 ${goalLine1}`, underValue, [
+        lineMove < -0.01 ? `大小球降盘到 ${goalLine1}` : lineMove > 0.01 ? "大小球升盘，小球承压" : "大小球盘口未变",
+        underMove < -0.05 ? "小球降水，进球停滞被防范" : underMove > 0.05 ? "小球升水，小球信心减弱" : "小球水位稳定",
+        phaseBias(phase, homeScore, awayScore, "under").text,
+        homeScore + awayScore > 0 ? `当前已有 ${homeScore + awayScore} 球` : "未进球阶段"
+      ], returnShapeValue("water", under1), underEdge);
+
+      rows.sort((a, b) => {
+        const order = { "偏有价值": 0, "有一定价值": 1, "中性": 2, "谨慎": 3 };
+        return order[a.grade] - order[b.grade] || b.score - a.score || a.marketRank - b.marketRank;
+      });
+      latestValueRows = rows;
+
+      $("valueTable").innerHTML = rows.map(row => `
+        <tr>
+          <td>${row.name}</td>
+          <td><span class="tag value-grade ${row.cls}">${row.grade}</span></td>
+          <td>${row.action}</td>
+          <td>${row.reason}</td>
+        </tr>
+      `).join("");
+    }
+
+    function money(n) {
+      if (!Number.isFinite(n)) return "-";
+      return n.toFixed(2);
+    }
+
+    function allocationGroup(row) {
+      if (row.name.includes("主胜") || row.name.includes("亚盘主队")) return "home";
+      if (row.name.includes("客胜") || row.name.includes("亚盘客队")) return "away";
+      if (row.name.includes("平局")) return "draw";
+      if (row.name.includes("大球")) return "over";
+      if (row.name.includes("小球")) return "under";
+      return row.name;
+    }
+
+    function rowLine(row) {
+      const match = String(row?.name || "").match(/([+-]?\d+(?:\.\d+)?)$/);
+      return match ? Number(match[1]) : NaN;
+    }
+
+    function routeConflictReason(a, b) {
+      const groupA = allocationGroup(a);
+      const groupB = allocationGroup(b);
+      const pair = [groupA, groupB].sort().join("|");
+      const asian = a.name.includes("亚盘") ? a : b.name.includes("亚盘") ? b : null;
+      const total = groupA === "under" || groupA === "over" ? a : groupB === "under" || groupB === "over" ? b : null;
+      const asianLine = rowLine(asian);
+      const totalLine = rowLine(total);
+
+      if (pair === "draw|home" || pair === "away|draw") {
+        if (asian && asianLine <= -1) return "平局方向和深让球方向的比分路径冲突。";
+      }
+      if (asian && total && Number.isFinite(asianLine) && Number.isFinite(totalLine)) {
+        const heavyFavorite = asianLine <= -1.5;
+        if (allocationGroup(total) === "under" && heavyFavorite && totalLine <= Math.abs(asianLine) + 0.75) {
+          return "小球和深让球赢盘需要的进球空间冲突。";
+        }
+        if (allocationGroup(total) === "over" && asianLine >= 1.5 && totalLine >= 3) {
+          return "大球和受让深盘的稳妥路径不一致。";
+        }
+      }
+      return "";
+    }
+
+    function filterRouteConflicts(rows) {
+      const selected = [];
+      rows.forEach(row => {
+        const conflictIndex = selected.findIndex(item => routeConflictReason(item, row));
+        if (conflictIndex === -1) {
+          selected.push(row);
+          return;
+        }
+        if (row.score > selected[conflictIndex].score + 1.2) {
+          selected.splice(conflictIndex, 1, row);
+        }
+      });
+      return selected.sort((a, b) => b.score - a.score);
+    }
+
+    function stakeRateFromScore(score, mode = "standard") {
+      const standard =
+        score >= 8 ? 0.68 :
+        score >= 7 ? 0.58 :
+        score >= 6 ? 0.50 :
+        score >= 5 ? 0.38 :
+        score >= 4 ? 0.25 :
+        score >= 3 ? 0.14 :
+        score >= 2 ? 0.06 : 0;
+      return mode === "conservative" ? standard * 0.45 : standard;
+    }
+
+    function modelAdjustedStakeRate(row, mode = "standard") {
+      const base = stakeRateFromScore(row.score, mode);
+      if (row.modelTier === "calibrated") {
+        return Math.min(base * 1.08, mode === "conservative" ? 0.42 : 0.74);
+      }
+      if (row.modelTier !== "ultra") return base;
+      const boosted = mode === "conservative" ? base * 1.18 : base * 1.14;
+      return Math.min(boosted, mode === "conservative" ? 0.48 : 0.82);
+    }
+
+    function buildAllocationRows(stake, mode = "standard") {
+      const raw = latestValueRows.filter(row => row.score >= 2);
+      const bestByGroup = new Map();
+      raw.forEach(row => {
+        const group = allocationGroup(row);
+        const current = bestByGroup.get(group);
+        if (!current || row.score > current.score) bestByGroup.set(group, { ...row, group });
+      });
+
+      let candidates = [...bestByGroup.values()].sort((a, b) => b.score - a.score);
+      const keepStrongerPair = (a, b) => {
+        const first = candidates.find(row => row.group === a);
+        const second = candidates.find(row => row.group === b);
+        if (!first || !second) return;
+        const keep = first.score >= second.score ? first.group : second.group;
+        candidates = candidates.filter(row => (row.group !== a && row.group !== b) || row.group === keep);
+      };
+      keepStrongerPair("home", "away");
+      keepStrongerPair("over", "under");
+      candidates = filterRouteConflicts(candidates);
+
+      const cap = mode === "conservative" ? 0.35 : 0.78;
+      const rows = candidates.slice(0, 3).map(row => ({
+        ...row,
+        rate: modelAdjustedStakeRate(row, mode)
+      })).filter(row => row.rate > 0);
+
+      const totalRate = rows.reduce((sum, row) => sum + row.rate, 0);
+      const scale = totalRate > cap ? cap / totalRate : 1;
+      return rows.map(row => {
+        const finalRate = row.rate * scale;
+        return {
+          ...row,
+          amount: stake * finalRate,
+          percent: finalRate
+        };
+      });
+    }
+
+    function renderAllocationTable(stake) {
+      if (!Number.isFinite(stake) || stake <= 0) {
+        latestConservativeAdvice = [];
+        $("fullAllocationTable").innerHTML = `<tr><td colspan="4">请输入本场计划投入金额。</td></tr>`;
+        $("reserveAllocationTable").innerHTML = `<tr><td colspan="4">请输入本场计划投入金额。</td></tr>`;
+        $("allocationNote").textContent = "资金分配只在你填写正数金额后显示。";
+        return;
+      }
+
+      const rowHtml = row => `
+        <tr>
+          <td>${row.name}</td>
+          <td>${money(row.amount)}</td>
+          <td>${(row.percent * 100).toFixed(1)}%</td>
+          <td>${row.score >= 4 ? "价值较明确" : "只适合轻仓"}；${row.action}。${row.reason}</td>
+        </tr>
+      `;
+      const standardRows = buildAllocationRows(stake, "standard");
+      const ledgerEntry = currentLedgerEntry();
+      const previousItems = ledgerEntry?.items || [];
+      const previousUsed = Math.min(stake, previousItems.reduce((sum, row) => sum + Number(row.amount || 0), 0));
+      const currentNodeAlreadySaved = previousItems.some(item => item.nodeKey === currentNodeKey());
+      const remainingStake = Math.max(0, stake - previousUsed);
+      const conservativeRows = currentNodeAlreadySaved || remainingStake <= 0 ? [] : buildAllocationRows(remainingStake, "conservative").map(row => ({
+        ...row,
+        percent: stake > 0 ? row.amount / stake : 0
+      }));
+      latestConservativeAdvice = conservativeRows;
+      const standardUsed = standardRows.reduce((sum, row) => sum + row.amount, 0);
+      const conservativeNewUsed = conservativeRows.reduce((sum, row) => sum + row.amount, 0);
+      const conservativeTotalUsed = previousUsed + conservativeNewUsed;
+
+      const previousRowHtml = row => `
+        <tr>
+          <td>已建议：${row.name}</td>
+          <td>${money(Number(row.amount || 0))}</td>
+          <td>${stake > 0 ? ((Number(row.amount || 0) / stake) * 100).toFixed(1) : "0.0"}%</td>
+          <td>${row.phase || "之前节点"}，比分 ${row.scoreText || "-"} 已经给过的保守建议；后续只用剩余资金继续判断。</td>
+        </tr>
+      `;
+
+      const reserveRow = amount => `
+        <tr>
+          <td>保留资金</td>
+          <td>${money(amount)}</td>
+          <td>${((amount / stake) * 100).toFixed(1)}%</td>
+          <td>没有明显价值时宁愿空仓；留给下一次进球、红牌、换人或盘口突然变动后的更好位置。</td>
+        </tr>
+      `;
+
+      if (!standardRows.length) {
+        const waitRow = `<tr><td>暂不下注</td><td>${money(0)}</td><td>0.0%</td><td>当前没有达到可下注阈值。强行出手不是资金分配，是追单。</td></tr>`;
+        $("fullAllocationTable").innerHTML = waitRow + reserveRow(stake);
+        $("reserveAllocationTable").innerHTML = previousItems.map(previousRowHtml).join("") + waitRow + reserveRow(stake - previousUsed);
+        $("allocationNote").textContent = previousUsed > 0
+          ? `当前节点没有新增价值。保守计划此前已建议 ${money(previousUsed)}，本节点不追加，继续保留 ${money(stake - previousUsed)}。`
+          : "当前没有足够投注价值，本场计划金额可以完整保留。不是每一场都必须下注，空仓也是资金策略。";
+        return;
+      }
+
+      $("fullAllocationTable").innerHTML = standardRows.map(rowHtml).join("") + reserveRow(stake - standardUsed);
+      $("reserveAllocationTable").innerHTML =
+        previousItems.map(previousRowHtml).join("") +
+        (conservativeRows.length ? conservativeRows.map(rowHtml).join("") : `<tr><td>本节点不追加</td><td>${money(0)}</td><td>0.0%</td><td>${currentNodeAlreadySaved ? "这个节点已经保存过建议，避免重复加仓。" : "剩余资金下没有新的高质量位置。"}</td></tr>`) +
+        reserveRow(stake - conservativeTotalUsed);
+      $("allocationNote").textContent = `计划金额 ${money(stake)}。标准计划当前建议使用 ${money(standardUsed)}，保留 ${money(stake - standardUsed)}；保守计划此前已建议 ${money(previousUsed)}，本节点新增 ${money(conservativeNewUsed)}，继续保留 ${money(stake - conservativeTotalUsed)}。同向高度相关的选项会自动择优，避免主胜和主队让球重复重仓。`;
+    }
+
+    function scorePredictionForCurrentMatch() {
+      const key = matchLedgerKey();
+      return key ? scorePredictionCache().find(row => row.matchKey === key) : null;
+    }
+
+    function resultFromRowName(name = "") {
+      if (name.includes("平局")) return "draw";
+      if (name.includes("主胜")) return "home";
+      if (name.includes("客胜")) return "away";
+      return "";
+    }
+
+    function resultLabel(result) {
+      return result === "home" ? "主队小胜" : result === "away" ? "客队不败" : "平局防范";
+    }
+
+    function pickResultLean(p1, support) {
+      if (p1.away > p1.home + 0.035) return "away";
+      if (p1.home > p1.away + 0.035) return "home";
+      if (p1.draw >= 0.29 && Math.abs(p1.home - p1.away) < 0.12) return "draw";
+      const directional = latestValueRows
+        .filter(row => row.name.startsWith("竞彩") && resultFromRowName(row.name))
+        .sort((a, b) => b.score - a.score)[0];
+      if (directional && directional.score >= 4) return resultFromRowName(directional.name);
+      if (support.side === "主队") return "home";
+      if (support.side === "客队") return "away";
+      return "draw";
+    }
+
+    function totalGoalTarget(goalLine, homeScore, awayScore) {
+      const currentTotal = homeScore + awayScore;
+      const overRow = latestValueRows.find(row => row.name.includes("大球"));
+      const underRow = latestValueRows.find(row => row.name.includes("小球"));
+      let target = Math.round(goalLine);
+      if (underRow && (!overRow || underRow.score > overRow.score + 0.8)) target = Math.floor(goalLine);
+      if (overRow && (!underRow || overRow.score > underRow.score + 0.8)) target = Math.ceil(goalLine);
+      return Math.max(currentTotal, Math.max(0, target));
+    }
+
+    function buildFirstScorePrediction(p1, support) {
+      const homeScore = val("homeScore");
+      const awayScore = val("awayScore");
+      const goalLine = val("goalLine1");
+      const ah = val("ah1");
+      if (![homeScore, awayScore, goalLine, ah].every(Number.isFinite)) return null;
+
+      const lean = pickResultLean(p1, support);
+      const target = totalGoalTarget(goalLine, homeScore, awayScore);
+      const maxGoals = Math.max(target + 2, homeScore + awayScore + 2, 4);
+      const expectedDiff = -ah;
+      const candidates = [];
+
+      for (let h = homeScore; h <= maxGoals; h += 1) {
+        for (let a = awayScore; a <= maxGoals; a += 1) {
+          const total = h + a;
+          if (Math.abs(total - target) > 1) continue;
+          const result = h > a ? "home" : a > h ? "away" : "draw";
+          let score = 8 - Math.abs(total - target) * 1.8 - Math.abs((h - a) - expectedDiff) * 0.45;
+          if (result === lean) score += 3;
+          else if (lean === "home" && result === "away") score -= 4;
+          else if (lean === "away" && result === "home") score -= 4;
+          else if (lean === "draw" && result !== "draw") score -= 1.5;
+          if (lean === "draw" && Math.abs(h - a) <= 1) score += 1.2;
+          if (result === "home") score += p1.home * 2;
+          if (result === "draw") score += p1.draw * 2.2;
+          if (result === "away") score += p1.away * 2;
+          if (h === homeScore && a === awayScore && $("matchPhase")?.value !== "76-90") score -= 1.5;
+          candidates.push({ value: `${h}-${a}`, score, result });
+        }
+      }
+
+      const unique = candidates
+        .sort((a, b) => b.score - a.score)
+        .filter((row, index, arr) => arr.findIndex(item => item.value === row.value) === index)
+        .slice(0, 2);
+
+      if (unique.length < 2) unique.push({ value: `${homeScore}-${awayScore}`, result: lean, score: 0 });
+      return {
+        version: SCORE_PREDICTION_VERSION,
+        matchKey: matchLedgerKey(),
+        createdAt: Date.now(),
+        scores: unique.slice(0, 2).map((row, index) => ({
+          value: row.value,
+          label: index === 0 ? "首选比分" : "备选比分",
+          note: resultLabel(row.result)
+        }))
+      };
+    }
+
+    function ensureFirstScorePrediction(p1, support) {
+      const key = matchLedgerKey();
+      if (!key || scorePredictionForCurrentMatch()) return;
+      const prediction = buildFirstScorePrediction(p1, support);
+      if (!prediction) return;
+      const rows = scorePredictionCache().filter(row => row.matchKey !== key);
+      rows.unshift(prediction);
+      saveScorePredictionCache(rows);
+    }
+
+    function ensureFirstScorePredictionFromInputs() {
+      const e0 = [val("eh0"), val("ed0"), val("ea0")];
+      const e1 = [val("eh1"), val("ed1"), val("ea1")];
+      if ([...e0, ...e1].some(n => !Number.isFinite(n) || n <= 0)) return;
+      const p0 = implied(...e0);
+      const p1 = implied(...e1);
+      ensureFirstScorePrediction(p1, supportSideByEuro(p0, p1));
+    }
+
+    function scorePicksMarkup() {
+      const prediction = scorePredictionForCurrentMatch();
+      if (!prediction) {
+        return `
+          <div class="score-pick"><span>推荐比分</span><b>待生成</b></div>
+          <div class="score-pick"><span>推荐比分</span><b>待生成</b></div>
+        `;
+      }
+      return prediction.scores.map(row => `
+        <div class="score-pick">
+          <span>${row.label}</span>
+          <b>${row.value}</b>
+        </div>
+      `).join("");
+    }
+
+    function renderRecommendation(p1, support, homeScore, awayScore, e1, context) {
+      const rawTopRows = latestValueRows.filter(row => row.score >= 2);
+      const topRows = filterRouteConflicts(rawTopRows).slice(0, 3);
+      const hasRouteFiltered = rawTopRows.length > topRows.length;
+      const avoidRows = latestValueRows.filter(row => row.score < 0).slice(0, 2);
+      const scoreText = `${homeScore}-${awayScore}`;
+      const cleanName = name => {
+        if (name.startsWith("亚盘主队")) return "主队让球";
+        if (name.startsWith("亚盘客队")) return "客队盘口";
+        return name
+          .replace(/^竞彩/, "")
+          .replace(/\s+[+-]?\d+(\.\d+)?$/, "")
+          .replace(/\s+\d+(\.\d+)?$/, "");
+      };
+      const recommendName = topRows.length ? cleanName(topRows[0].name) : "观望";
+      const likely = [
+        { name: "主胜", prob: p1.home, odd: e1[0] },
+        { name: "平局", prob: p1.draw, odd: e1[1] },
+        { name: "客胜", prob: p1.away, odd: e1[2] }
+      ].sort((a, b) => b.prob - a.prob)[0];
+      const likelyPrice = euroPriceValue(likely.odd);
+      const riskTags = buildRiskTags({ e1, p1, homeScore, awayScore, ...context });
+      const best = topRows[0];
+      const execution = !best ? "观望" : best.modelTier === "ultra" ? "超精选加权" : best.score >= 4 ? "重点观察" : "小注/等确认";
+      const valueText = !best ? "暂无价值" : best.grade;
+      const mainRisk = riskTags[0]?.[0] || "风险可控";
+      if (!topRows.length) {
+        if (likely.prob >= 0.68 && likelyPrice.tooLow) {
+          $("recommendationTitle").textContent = `看好：${likely.name}，但不追低赔`;
+          $("recommendationSubtitle").textContent = `当前比分 ${scoreText}，${likely.name}概率很高，但 ${likelyPrice.text} 这类盘更适合找让球、大小球或等待更好的赔率。`;
+        } else {
+          $("recommendationTitle").textContent = "先观望，不建议硬下";
+          $("recommendationSubtitle").textContent = `当前比分 ${scoreText}，盘口没有给出足够一致的投注价值。等下一次明显变盘再判断更稳。`;
+        }
+      } else {
+        const first = topRows[0];
+        const modelLabel = first.modelTier === "ultra" ? "综合看好" : "看好";
+        $("recommendationTitle").textContent = `${modelLabel}：${recommendName}`;
+        const lowPriceNote = likely.prob >= 0.68 && likelyPrice.tooLow ? ` ${likely.name}本身赔率太低，已自动降权；当前更适合看盘口方向，或等更好的赔率。` : "";
+        const modelNote = first.modelTier === "ultra"
+          ? "综合评分里叠加了 Monte Carlo 超精选加分，但仍同时看盘口、赔率回报、比分节点和市场类型。"
+          : first.modelTier === "calibrated"
+            ? "综合评分里使用了封存回测校准，但不会只按单一模型下注。"
+            : "当前主要按盘口变化、赔率回报和比赛节点做综合判断。";
+        $("recommendationSubtitle").textContent = `${first.grade}。${modelNote} 这里推荐的是“值得下注的方向”，不是单纯胜率最高的方向；赔率太低的选项会被自动降权。${lowPriceNote}`;
+      }
+      $("decisionStrip").innerHTML = [
+        ["执行建议", execution],
+        ["推荐价值", valueText],
+        ["模型", best?.modelTier === "ultra" ? "综合+超精选" : best?.modelTier === "calibrated" ? "综合+回测" : "综合"],
+        ["关键风险", mainRisk]
+      ].map(([label, value]) => `<div class="decision-pill"><span>${label}</span><b>${value}</b></div>`).join("");
+      $("riskTags").innerHTML = riskTags.map(([text, type]) => `<span class="tag ${type}">${text}</span>`).join("");
+      $("recommendationTags").innerHTML = [
+        hasRouteFiltered ? `<span class="tag warn">已过滤路径冲突</span>` : "",
+        ...topRows.map(row => `<span class="tag ${row.cls}">${row.name}：${row.grade}</span>`),
+        ...avoidRows.map(row => `<span class="tag bad">谨慎：${row.name}</span>`)
+      ].filter(Boolean).join("") || `<span class="tag warn">暂无强信号</span>`;
+      $("quickStats").innerHTML = `
+        <div class="quick-stat score-stat">
+          <span class="quick-label">当前比分</span>
+          <b class="score-value">${scoreText}</b>
+        </div>
+        <div class="quick-stat lean-stat">
+          <span>推荐方向</span>
+          <b>${recommendName}</b>
+        </div>
+        <div class="score-picks">
+          ${scorePicksMarkup()}
+        </div>
+        <div class="quick-stat prob-stat">
+          <span>胜平负</span>
+          <div class="prob-row">
+            <div class="prob-item prob-home"><span>胜</span><b>${pct(p1.home)}</b></div>
+            <div class="prob-item prob-draw"><span>平</span><b>${pct(p1.draw)}</b></div>
+            <div class="prob-item prob-away"><span>负</span><b>${pct(p1.away)}</b></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function currentSnapshot() {
+      const e0 = [val("eh0"), val("ed0"), val("ea0")];
+      const e1 = [val("eh1"), val("ed1"), val("ea1")];
+      const p0 = implied(...e0);
+      const p1 = implied(...e1);
+      return {
+        time: new Date().toLocaleTimeString("zh-CN", { hour12: false }),
+        homeScore: val("homeScore"),
+        awayScore: val("awayScore"),
+        matchPhase: $("matchPhase")?.value || "pre",
+        baseEh: e0[0],
+        baseEd: e0[1],
+        baseEa: e0[2],
+        basePh: p0.home,
+        basePd: p0.draw,
+        basePa: p0.away,
+        eh: e1[0],
+        ed: e1[1],
+        ea: e1[2],
+        ph: p1.home,
+        pd: p1.draw,
+        pa: p1.away,
+        baseAh: val("ah0"),
+        baseHw: val("hw0"),
+        baseAw: val("aw0"),
+        ah: val("ah1"),
+        hw: val("hw1"),
+        aw: val("aw1"),
+        baseGoalLine: val("goalLine0"),
+        baseOver: val("over0"),
+        baseUnder: val("under0"),
+        goalLine: val("goalLine1"),
+        over: val("over1"),
+        under: val("under1")
+      };
+    }
+
+    function matchHistoryStore() {
+      try {
+        const store = JSON.parse(localStorage.getItem(MATCH_HISTORY_KEY) || "{}");
+        return store && typeof store === "object" && !Array.isArray(store) ? store : {};
+      } catch {
+        localStorage.removeItem(MATCH_HISTORY_KEY);
+        return {};
+      }
+    }
+
+    function saveHistory(history, key = matchLedgerKey()) {
+      if (!key) return;
+      const store = matchHistoryStore();
+      store[key] = history;
+      localStorage.setItem(MATCH_HISTORY_KEY, JSON.stringify(store));
+    }
+
+    function loadHistory(key = matchLedgerKey()) {
+      if (!key) return [];
+      const store = matchHistoryStore();
+      const rows = Array.isArray(store[key]) ? store[key] : [];
+      if (rows.length) return rows;
+      const savedRow = dailyCache().find(row => row.key === key);
+      return Array.isArray(savedRow?.history) ? savedRow.history : [];
+    }
+
+    function removeMatchHistory(key) {
+      if (!key) return;
+      const store = matchHistoryStore();
+      delete store[key];
+      localStorage.setItem(MATCH_HISTORY_KEY, JSON.stringify(store));
+    }
+
+    function leaderText(row) {
+      if (row.homeScore > row.awayScore) return "主队领先";
+      if (row.awayScore > row.homeScore) return "客队领先";
+      return row.homeScore + row.awayScore === 0 ? "未进球" : "双方打平";
+    }
+
+    function dominantMove(row, base) {
+      const moves = [
+        ["主胜", row.ph - base.ph],
+        ["平局", row.pd - base.pd],
+        ["客胜", row.pa - base.pa]
+      ].sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+      return moves[0];
+    }
+
+    function nodeBase(row) {
+      return {
+        ph: Number.isFinite(row.basePh) ? row.basePh : row.ph,
+        pd: Number.isFinite(row.basePd) ? row.basePd : row.pd,
+        pa: Number.isFinite(row.basePa) ? row.basePa : row.pa,
+        ah: Number.isFinite(row.baseAh) ? row.baseAh : row.ah,
+        hw: Number.isFinite(row.baseHw) ? row.baseHw : row.hw,
+        aw: Number.isFinite(row.baseAw) ? row.baseAw : row.aw,
+        goalLine: Number.isFinite(row.baseGoalLine) ? row.baseGoalLine : row.goalLine,
+        over: Number.isFinite(row.baseOver) ? row.baseOver : row.over,
+        under: Number.isFinite(row.baseUnder) ? row.baseUnder : row.under
+      };
+    }
+
+    function detailedHistoryNotes(prev, cur) {
+      const base = prev || nodeBase(cur);
+      const notes = [];
+      const score = `${cur.homeScore}-${cur.awayScore}`;
+      const goals = cur.homeScore + cur.awayScore;
+      const scoreChanged = prev && (cur.homeScore !== prev.homeScore || cur.awayScore !== prev.awayScore);
+      const homeGoal = prev && cur.homeScore > prev.homeScore;
+      const awayGoal = prev && cur.awayScore > prev.awayScore;
+      const [mainSide, mainMove] = dominantMove(cur, base);
+      const ahMove = cur.ah - base.ah;
+      const goalLineMove = cur.goalLine - base.goalLine;
+      const overMove = cur.over - base.over;
+      const underMove = cur.under - base.under;
+
+      if (!prev) {
+        notes.push(`节点背景：当前比分 ${score}，这是本场记录的第一个节点。以下解读以你填写的初盘作为基准，判断即时盘口已经偏向哪边。`);
+      } else if (scoreChanged) {
+        const scorer = homeGoal && awayGoal ? "双方都有进球" : homeGoal ? "主队进球" : "客队进球";
+        notes.push(`节点背景：比分从 ${prev.homeScore}-${prev.awayScore} 变为 ${score}，${scorer}后，盘口应该出现重新定价；重点看进球方是否被继续支持，以及另一方是否被防反扑。`);
+      } else {
+        notes.push(`节点背景：比分仍是 ${score}，没有新增进球。这类节点重点看资金或场面变化是否让机构提前调整方向。`);
+      }
+
+      notes.push(`欧赔态度：相对${prev ? "上一节点" : "初盘"}，变化最明显的是${mainSide}，去水概率变化 ${pp(mainMove)}。当前概率为主胜 ${pct(cur.ph)}、平局 ${pct(cur.pd)}、客胜 ${pct(cur.pa)}。`);
+      if (cur.homeScore > cur.awayScore) {
+        if (cur.ph - base.ph > 0.015 && ahMove < -0.01) notes.push("胜负判断：主队领先后，主胜概率上升且亚盘继续向主队加深，说明机构认可主队领先优势，并对主队守住或扩大比分有较强防范。");
+        else if (cur.ph - base.ph < 0.01 || ahMove > 0.01) notes.push("胜负判断：主队虽然领先，但主胜概率或亚盘没有同步加强，说明机构对主队守胜并不充分信任，要防平局或客队反扑。");
+        if (cur.pd - base.pd > 0.012) notes.push("风险点：主队领先后平局概率仍在上升，说明追平风险被机构明显保留。");
+      } else if (cur.awayScore > cur.homeScore) {
+        if (cur.pa - base.pa > 0.015 && ahMove > 0.01) notes.push("胜负判断：客队领先后，客胜概率上升且亚盘向客队方向移动，说明机构认可客队领先局面。");
+        else if (cur.pa - base.pa < 0.01 || ahMove < -0.01) notes.push("胜负判断：客队虽然领先，但客胜概率或亚盘没有同步加强，说明机构仍防主队反扑或主队基本面优势。");
+        if (cur.pd - base.pd > 0.012) notes.push("风险点：客队领先后平局概率被抬高，代表主队扳平被防范。");
+      } else {
+        if (cur.pd - base.pd > 0.012) notes.push("胜负判断：打平状态下平局概率上升，机构更防比赛僵持。");
+        else if (cur.ph - cur.pa > 0.08) notes.push("胜负判断：虽然比分打平，但主胜概率仍明显高于客胜，机构仍偏向主队后续取得优势。");
+        else if (cur.pa - cur.ph > 0.08) notes.push("胜负判断：虽然比分打平，但客胜概率明显高于主胜，机构仍偏向客队后续取得优势。");
+      }
+
+      if (ahMove < -0.01) notes.push(`亚盘解读：盘口从 ${handicapText(base.ah)} 到 ${handicapText(cur.ah)}，向主队加深 ${Math.abs(ahMove).toFixed(2)}。如果同时主队水位升高，代表主队方向热但打穿未必轻松；如果主队水位下降，则主队方向防范更实。`);
+      else if (ahMove > 0.01) notes.push(`亚盘解读：盘口从 ${handicapText(base.ah)} 到 ${handicapText(cur.ah)}，向客队方向移动 ${ahMove.toFixed(2)}。这通常削弱主队方向，或增强客队不败/客队方向的保护。`);
+      else {
+        if (cur.hw < base.hw - 0.05) notes.push("亚盘解读：盘口不变但主队降水，说明主队方向被压低，机构在同盘口下加强主队防范。");
+        else if (cur.aw < base.aw - 0.05) notes.push("亚盘解读：盘口不变但客队降水，说明客队方向被压低，机构在同盘口下加强客队防范。");
+        else notes.push("亚盘解读：盘口和两边水位变化都不大，说明机构暂时没有通过亚盘明显改变强弱定位。");
+      }
+
+      if (goalLineMove > 0.01) notes.push(`大小球解读：总进球盘口从 ${base.goalLine} 升到 ${cur.goalLine}，说明进球预期被抬高。当前已进 ${goals} 球，若大球还降水，代表继续出球防范更强。`);
+      else if (goalLineMove < -0.01) notes.push(`大小球解读：总进球盘口从 ${base.goalLine} 降到 ${cur.goalLine}，说明机构下调后续进球预期，比赛可能被判断为节奏下降或进攻效率不足。`);
+      else if (overMove < -0.05) notes.push("大小球解读：大小球盘口不变但大球降水，说明机构在当前门槛下防继续出球。");
+      else if (underMove < -0.05) notes.push("大小球解读：大小球盘口不变但小球降水，说明机构防比赛降速或进球停滞。");
+      else notes.push("大小球解读：总进球盘口与大小球水位变化有限，进球预期没有明显重新定价。");
+
+      if (scoreChanged && homeGoal && (cur.ph - base.ph <= 0.01 || ahMove >= 0)) notes.push("综合结论：主队进球后没有得到欧赔和亚盘同步确认，这不是强势领先信号，更像机构防守主队优势不足或客队反扑。");
+      else if (scoreChanged && awayGoal && (cur.pa - base.pa <= 0.01 || ahMove <= 0)) notes.push("综合结论：客队进球后没有得到欧赔和亚盘同步确认，说明机构仍不完全相信客队能守住局面。");
+      else if (mainMove > 0.015) notes.push(`综合结论：本节点机构主要加强${mainSide}方向；若这个方向与比分领先方一致，说明领先优势被确认，若不一致，则说明机构在防另一方反扑或比分再变化。`);
+      else notes.push(`综合结论：本节点没有明显单边强化，机构更像是在维持平衡，后续要继续观察下一次进球或水位突变。`);
+
+      return notes;
+    }
+
+    function historyNote(prev, cur) {
+      return detailedHistoryNotes(prev, cur).join(" ");
+    }
+
+    function renderHistory() {
+      const history = loadHistory();
+      if (!history.length) {
+        $("historyTable").innerHTML = `<tr><td colspan="6">暂无记录。更新即时盘口后点击“记录当前节点”。</td></tr>`;
+        return;
+      }
+      $("historyTable").innerHTML = history.map((row, index) => {
+        const prev = index > 0 ? history[index - 1] : null;
+        const notes = detailedHistoryNotes(prev, row);
+        return `<tr>
+          <td>${index + 1}<br><span class="flat">${row.time}</span></td>
+          <td>${row.homeScore}-${row.awayScore}<br><span class="flat">${phaseLabel(row.matchPhase)}</span></td>
+          <td>${fmt(row.eh)} / ${fmt(row.ed)} / ${fmt(row.ea)}</td>
+          <td>${handicapText(row.ah)}<br><span class="flat">${fmt(row.hw)} / ${fmt(row.aw)}</span></td>
+          <td>${row.goalLine}<br><span class="flat">大 ${fmt(row.over)} / 小 ${fmt(row.under)}</span></td>
+          <td><ul class="analysis-list">${notes.map(note => `<li>${note}</li>`).join("")}</ul></td>
+        </tr>`;
+      }).join("");
+    }
+
+    function recordSnapshot() {
+      syncCurrentMatchKeyFromName();
+      analyze();
+      ensureFirstScorePredictionFromInputs();
+      const history = loadHistory();
+      history.push(currentSnapshot());
+      saveHistory(history);
+      allowSaveCurrentInputs = true;
+      saveCurrentInputs();
+      allowSaveCurrentInputs = false;
+      saveConservativeAdvice();
+      renderHistory();
+      setActiveView("pro");
+    }
+
+    function clearHistory() {
+      saveHistory([]);
+      allowSaveCurrentInputs = true;
+      saveCurrentInputs();
+      allowSaveCurrentInputs = false;
+      renderHistory();
+    }
+
+    function favFromProbs(p) {
+      const arr = [["主胜", p.home], ["平局", p.draw], ["客胜", p.away]].sort((a, b) => b[1] - a[1]);
+      return arr[0][0];
+    }
+
+    function euroStructure(odds, probs) {
+      const [h, d, a] = odds;
+      const gap = Math.abs(probs.home - probs.away);
+      if (gap < 0.055 && d <= 3.25) return "均势偏平局防范";
+      if (gap < 0.075) return "均势盘";
+      if (h < a && d <= 3.20) return "主队小优但平局压力较大";
+      if (a < h && d <= 3.20) return "客队小优但平局压力较大";
+      if (h <= 1.55) return "主队明显优势";
+      if (a <= 1.95) return "客队明显优势";
+      if (h < a) return "主队优势结构";
+      return "客队优势结构";
+    }
+
+    function handicapText(v) {
+      return formatHandicap(v);
+    }
+
+    function formatHandicap(v) {
+      const n = Number(v);
+      if (!Number.isFinite(n)) return "-";
+      if (n === 0) return "0";
+      return `${n > 0 ? "+" : ""}${n}`;
+    }
+
+    function movementWord(delta, inverse = false) {
+      if (Math.abs(delta) < 0.005) return ["持平", "flat"];
+      const up = delta > 0;
+      const word = up ? "上升" : "下降";
+      const cls = inverse ? (up ? "bad" : "good") : (up ? "up" : "down");
+      return [word, cls];
+    }
+
+    function oddsMeaning(item, delta) {
+      if (Math.abs(delta) < 0.015) return "基本稳定";
+      if (item === "主胜") return delta < 0 ? "主胜方向被压低，主队支持增强" : "主胜赔抬高，主队信心减弱";
+      if (item === "平局") return delta < 0 ? "平赔压低，平局防范增强" : "平赔抬高，平局空间被弱化";
+      return delta < 0 ? "客胜方向被压低，客队支持增强" : "客胜赔抬高，客队信心减弱";
+    }
+
+    function supportSideByEuro(p0, p1) {
+      const dh = p1.home - p0.home;
+      const dd = p1.draw - p0.draw;
+      const da = p1.away - p0.away;
+      const arr = [["主队", dh], ["平局", dd], ["客队", da]].sort((a, b) => b[1] - a[1]);
+      return { side: arr[0][0], delta: arr[0][1], changes: { dh, dd, da } };
+    }
+
+    function buildBookmakerSummary({ e0, e1, p0, p1, structure0, structure1, support, ah0, ah1, hMove, homeWaterMove, awayWaterMove, consistentHome, consistentAway, inconsistent }) {
+      const notes = [];
+      const moves = [
+        ["主胜", e0[0], e1[0], p0.home, p1.home],
+        ["平局", e0[1], e1[1], p0.draw, p1.draw],
+        ["客胜", e0[2], e1[2], p0.away, p1.away]
+      ].map(([name, openOdd, liveOdd, openProb, liveProb]) => ({
+        name,
+        oddMove: liveOdd - openOdd,
+        probMove: liveProb - openProb,
+        liveOdd,
+        liveProb,
+        drop: euroDrop(openOdd, liveOdd)
+      })).sort((a, b) => Math.abs(b.probMove) - Math.abs(a.probMove));
+      const main = moves[0];
+      const drawMove = moves.find(row => row.name === "平局");
+      const lowPrices = moves.filter(row => row.liveProb >= 0.58 && euroPriceValue(row.liveOdd).tooLow);
+
+      notes.push(`初盘欧赔是「${structure0}」，即时欧赔转为「${structure1}」。这说明机构不是只在调单一赔率，而是在重新分配主胜、平局、客胜三项的赔付压力。`);
+      if (Math.abs(main.probMove) >= 0.008) {
+        notes.push(`欧赔主线变化最大的是${main.name}，去水概率变化 ${pp(main.probMove)}，赔率变化 ${main.oddMove >= 0 ? "+" : ""}${main.oddMove.toFixed(2)}。如果概率上升同时赔率下降，这属于比较真实的防范；如果只有赔率动、概率没跟上，就更像结构性调赔。`);
+      } else {
+        notes.push("三项去水概率变化都不大，当前盘口没有给出强烈单边信号，解读重点要回到初赔结构：谁是初始优势方、平赔是否压低、即时盘有没有打破原来的强弱定位。");
+      }
+      if (drawMove && (drawMove.probMove > 0.01 || drawMove.drop >= 0.025 || p1.draw >= 0.29)) {
+        notes.push(`平局位置需要单独看：当前平局去水概率 ${pct(p1.draw)}，较初盘 ${pp(drawMove.probMove)}。平局被抬高时，胜负方向即使看起来有优势，也要考虑受让盘或保守资金，而不是把胜负打满。`);
+      } else {
+        notes.push(`平局当前去水概率 ${pct(p1.draw)}，没有成为最强防范点；如果主客其中一方同时得到欧赔和亚盘确认，胜负方向的可信度会更高。`);
+      }
+      if (consistentHome || consistentAway) {
+        const side = consistentHome ? "主队" : "客队";
+        notes.push(`欧亚联动方面，欧赔和亚盘目前同向支持${side}。但还要看水位：若看好方向升水，说明赢球和赢盘不是一回事，推荐时需要控制让球盘仓位。`);
+      } else if (inconsistent) {
+        notes.push("欧赔和亚盘现在有分歧，这种盘不能只按欧赔降赔追方向。更合理的做法是降低单边胜负权重，优先找能覆盖风险的盘口，比如受让、平局保护或大小球。");
+      } else {
+        notes.push(`亚盘初盘为${handicapText(ah0)}，即时为${handicapText(ah1)}，${Math.abs(hMove) < 0.01 ? "盘口本身没有明显移动，主要看两边水位谁被压低。" : hMove < 0 ? "盘口向主队加深，主队定位被抬高。" : "盘口向客队方向移动，主队定位被削弱。"}`);
+      }
+      if (lowPrices.length) {
+        notes.push(`赔率回报上，${lowPrices.map(row => `${row.name} ${fmt(row.liveOdd)}`).join("、")}属于低回报区间。机构可能确实看好，但对下注来说不一定划算，需要转看让球盘、大小球或等待更好的价格。`);
+      }
+      return notes.join(" ");
+    }
+
+    function handicapLean(v) {
+      if (v <= -1) return "主队优势较明显";
+      if (v <= -0.5) return "主队有明确优势";
+      if (v < 0) return "主队略占优势";
+      if (v === 0) return "双方基本均势";
+      if (v < 0.5) return "客队略占优势";
+      if (v < 1) return "客队有明确优势";
+      return "客队优势较明显";
+    }
+
+    function analyze() {
+      const e0 = [val("eh0"), val("ed0"), val("ea0")];
+      const e1 = [val("eh1"), val("ed1"), val("ea1")];
+      const ah0 = val("ah0"), ah1 = val("ah1");
+      const hw0 = val("hw0"), hw1 = val("hw1"), aw0 = val("aw0"), aw1 = val("aw1");
+      const goalLine0 = val("goalLine0"), goalLine1 = val("goalLine1");
+      const over0 = val("over0"), over1 = val("over1"), under0 = val("under0"), under1 = val("under1");
+      const homeScore = val("homeScore"), awayScore = val("awayScore");
+      const plannedStake = val("plannedStake");
+      if ([...e0, ...e1, hw0, hw1, aw0, aw1, goalLine0, goalLine1, over0, over1, under0, under1].some(n => !Number.isFinite(n) || n <= 0) || [ah0, ah1, plannedStake].some(n => !Number.isFinite(n)) || plannedStake < 0 || [homeScore, awayScore].some(n => !Number.isFinite(n) || n < 0)) {
+        latestConservativeAdvice = [];
+        $("verdict").textContent = "请填入完整有效的赔率";
+        $("recommendationTitle").textContent = "等待有效数据";
+        $("recommendationSubtitle").textContent = "请先把欧赔、亚盘、大小球和比分填完整。";
+        $("decisionStrip").innerHTML = "";
+        $("riskTags").innerHTML = "";
+        $("recommendationTags").innerHTML = `<span class="tag warn">数据未完整</span>`;
+        $("quickStats").innerHTML = "";
+        return;
+      }
+
+      const p0 = implied(...e0);
+      const p1 = implied(...e1);
+      const support = supportSideByEuro(p0, p1);
+      const structure0 = euroStructure(e0, p0);
+      const structure1 = euroStructure(e1, p1);
+      const hMove = ah1 - ah0;
+      const homeWaterMove = hw1 - hw0;
+      const awayWaterMove = aw1 - aw0;
+
+      let asianMove;
+      if (Math.abs(hMove) < 0.01) asianMove = "盘口未变，主要看水位表达";
+      else if (hMove < 0) asianMove = "盘口向主队加深，主队定位被抬高";
+      else asianMove = "盘口向客队方向移动，主队定位被削弱";
+
+      const tags = [];
+      tags.push({ text: structure1, type: "info" });
+      tags.push({ text: support.delta > 0.01 ? `欧赔增强：${support.side}` : "欧赔变化温和", type: support.delta > 0.01 ? "good" : "warn" });
+      tags.push({ text: asianMove, type: hMove < -0.01 ? "good" : hMove > 0.01 ? "bad" : "warn" });
+
+      const euroHomeStrong = support.side === "主队" && support.delta > 0.01;
+      const euroAwayStrong = support.side === "客队" && support.delta > 0.01;
+      const asianHomeStrong = hMove < -0.01 || (Math.abs(hMove) < 0.01 && homeWaterMove < -0.04);
+      const asianAwayStrong = hMove > 0.01 || (Math.abs(hMove) < 0.01 && awayWaterMove < -0.04);
+      const consistentHome = euroHomeStrong && asianHomeStrong;
+      const consistentAway = euroAwayStrong && asianAwayStrong;
+      const inconsistent = (euroHomeStrong && asianAwayStrong) || (euroAwayStrong && asianHomeStrong);
+
+      if (consistentHome) tags.push({ text: "欧亚同向支持主队", type: "good" });
+      if (consistentAway) tags.push({ text: "欧亚同向支持客队", type: "good" });
+      if (inconsistent) tags.push({ text: "欧亚表达不一致", type: "bad" });
+      if (p1.draw > p0.draw + 0.01 || e1[1] < e0[1] - 0.08) tags.push({ text: "平局防范增强", type: "warn" });
+
+      let verdict = "博彩公司倾向：";
+      if (consistentHome) verdict += "主队方向被明显抬高";
+      else if (consistentAway) verdict += "客队方向被明显抬高";
+      else if (support.side === "主队" && support.delta > 0.01) verdict += "欧赔支持主队，但要看亚盘是否配合";
+      else if (support.side === "客队" && support.delta > 0.01) verdict += "欧赔支持客队，但要看亚盘是否配合";
+      else if (support.side === "平局" && support.delta > 0.01) verdict += "平局防范升温";
+      else verdict += "整体变化不大，初盘定位更关键";
+
+      $("verdict").textContent = verdict;
+      $("summaryText").textContent = buildBookmakerSummary({
+        e0,
+        e1,
+        p0,
+        p1,
+        structure0,
+        structure1,
+        support,
+        ah0,
+        ah1,
+        hMove,
+        homeWaterMove,
+        awayWaterMove,
+        consistentHome,
+        consistentAway,
+        inconsistent
+      });
+
+      $("tags").innerHTML = tags.map(t => `<span class="tag ${t.type}">${t.text}</span>`).join("");
+      renderValueTable(e0, e1, p0, p1, ah0, ah1, hw0, hw1, aw0, aw1, goalLine0, goalLine1, over0, over1, under0, under1, homeScore, awayScore);
+      renderAllocationTable(plannedStake);
+      renderRecommendation(p1, support, homeScore, awayScore, e1, {
+        hMove,
+        homeWaterMove,
+        awayWaterMove,
+        goalLineMove: goalLine1 - goalLine0,
+        overMove: over1 - over0,
+        underMove: under1 - under0,
+        consistentHome,
+        consistentAway,
+        inconsistent,
+        phase: $("matchPhase")?.value || "pre"
+      });
+
+      $("metrics").innerHTML = [
+        ["主胜概率", p0.home, p1.home],
+        ["平局概率", p0.draw, p1.draw],
+        ["客胜概率", p0.away, p1.away]
+      ].map(([name, before, after]) => {
+        const diff = after - before;
+        const cls = Math.abs(diff) < .003 ? "flat" : diff > 0 ? "up" : "down";
+        const sign = diff > 0 ? "+" : "";
+        return `<div class="metric"><b>${pct(after)}</b><span>${name}，初盘 ${pct(before)}，变化 <em class="${cls}">${sign}${(diff * 100).toFixed(1)}%</em></span></div>`;
+      }).join("");
+      renderProbabilityDetails(e0, e1, p0, p1);
+
+      const euroRows = [
+        ["主胜", e0[0], e1[0]],
+        ["平局", e0[1], e1[1]],
+        ["客胜", e0[2], e1[2]]
+      ].map(([name, before, after]) => {
+        const delta = after - before;
+        const cls = Math.abs(delta) < .015 ? "flat" : delta > 0 ? "up" : "down";
+        const sign = delta > 0 ? "+" : "";
+        return `<tr><td>${name}</td><td>${fmt(before)}</td><td>${fmt(after)}</td><td class="${cls}">${sign}${fmt(delta)}</td><td>${oddsMeaning(name, delta)}</td></tr>`;
+      });
+      euroRows.push(`<tr><td>返还率边际</td><td>${pct(p0.margin)}</td><td>${pct(p1.margin)}</td><td class="flat">${fmt((p1.margin - p0.margin) * 100)}%</td><td>边际越高，赔率空间通常越保守</td></tr>`);
+      $("euroTable").innerHTML = euroRows.join("");
+
+      const asianItems = [];
+      asianItems.push(`初盘亚盘定位：${handicapText(ah0)}，表达为「${handicapLean(ah0)}」。即时盘为${handicapText(ah1)}，表达为「${handicapLean(ah1)}」。`);
+      asianItems.push(`${asianMove}；主队水位从 ${fmt(hw0)} 到 ${fmt(hw1)}，客队水位从 ${fmt(aw0)} 到 ${fmt(aw1)}。`);
+      if (Math.abs(hMove) < 0.01) {
+        if (homeWaterMove < -0.04) asianItems.push("盘口不变但主队降水，通常表示主队方向受压或被更多防范。");
+        else if (homeWaterMove > 0.04) asianItems.push("盘口不变但主队升水，通常表示机构对主队打穿的赔付态度变得更谨慎。");
+        else asianItems.push("盘口和水位都较稳定，说明市场暂时没有明显改变初始判断。");
+      } else if (hMove < 0 && homeWaterMove >= 0.04) {
+        asianItems.push("升盘后主队水位偏高，常见含义是主队热度上升，但机构未必认为赢盘会很轻松。");
+      } else if (hMove < 0) {
+        asianItems.push("升盘且主队水位没有明显走高，主队方向的支持相对更实。");
+      } else if (hMove > 0 && awayWaterMove <= -0.04) {
+        asianItems.push("盘口退向客队且客队降水，客队不败或客队方向的防范明显增强。");
+      } else {
+        asianItems.push("盘口退盘说明主队初始优势被削弱，需要警惕主胜热度与盘口表达不匹配。");
+      }
+      if (inconsistent) asianItems.push("欧赔和亚盘没有同向表达，优先把这场视为分歧盘：不能只凭单边降赔判断方向。");
+      else if (consistentHome || consistentAway) asianItems.push("欧赔和亚盘同向，说明即时市场与盘口定位目前比较一致。");
+      $("asianList").innerHTML = asianItems.map(x => `<li>${x}</li>`).join("");
+      renderScoreAnalysis(homeScore, awayScore, e0, e1, p0, p1, ah0, ah1, hw0, hw1, aw0, aw1);
+      renderTotalGoalAnalysis(homeScore, awayScore, goalLine0, goalLine1, over0, over1, under0, under1);
+
+      const finalItems = [];
+      const topValues = filterRouteConflicts(latestValueRows.filter(row => row.score >= 2)).slice(0, 3);
+      const cautionValues = latestValueRows.filter(row => row.score < 0).slice(0, 2);
+      const scoreText = `${homeScore}-${awayScore}`;
+      const leader = homeScore > awayScore ? "主队领先" : awayScore > homeScore ? "客队领先" : homeScore + awayScore === 0 ? "未进球" : "双方打平";
+      const goalLineMove = goalLine1 - goalLine0;
+      const overMove = over1 - over0;
+      const underMove = under1 - under0;
+
+      finalItems.push(`现在的比赛状态：${phaseLabel($("matchPhase")?.value || "pre")}，比分 ${scoreText}，${leader}。盘口目前最明显在防的是${support.side}，也就是市场觉得这个方向不能完全放掉。`);
+      if (topValues.length) finalItems.push(`可以优先看的方向：${topValues.map(row => `${row.name}（${row.grade}）`).join("、")}。它们不是“必中”，只是目前几组数据相对更配合。`);
+      else finalItems.push("当前不适合硬选方向：胜负、让球和大小球没有形成足够统一的信号，先等下一次变盘会更舒服。");
+      const lowPriceSides = [
+        ["主胜", e1[0], p1.home],
+        ["平局", e1[1], p1.draw],
+        ["客胜", e1[2], p1.away]
+      ].filter(([, odd, prob]) => prob >= 0.6 && euroPriceValue(odd).tooLow);
+      if (lowPriceSides.length) finalItems.push(`赔率回报提醒：${lowPriceSides.map(([name, odd]) => `${name}赔率 ${fmt(odd)}`).join("、")} 虽然概率高，但回报偏薄，不适合只因为“看起来稳”就重仓。`);
+      if (consistentHome) finalItems.push("胜负倾向：欧赔和亚盘都在往主队这边靠，主队方向更值得重视；但如果主队水位偏高，说明赢球和赢盘不是一回事。");
+      else if (consistentAway) finalItems.push("胜负倾向：欧赔和亚盘都在往客队这边靠，客队不败或客队方向更值得重视。");
+      else if (support.side === "平局") finalItems.push("胜负倾向：市场没有明显推向某一边，平局风险比较突出，胜负方向不要下得太满。");
+      else finalItems.push("胜负倾向：目前还不是单边强势盘，最好结合场面、阵容、红黄牌和比赛时间再确认。");
+      finalItems.push(`让球怎么看：亚盘从 ${handicapText(ah0)} 变到 ${handicapText(ah1)}，${asianMove}。简单说，盘口往哪边走，机构就在重新评估哪边更占便宜。`);
+      finalItems.push(`大小球怎么看：总进球线从 ${goalLine0} 到 ${goalLine1}，${goalLineMove > 0.01 ? "市场觉得后面更可能继续有球" : goalLineMove < -0.01 ? "市场觉得后面进球空间变小" : "市场对进球数暂时没有大改判断"}。`);
+      if (cautionValues.length) finalItems.push(`需要少碰的方向：${cautionValues.map(row => `${row.name}（${row.grade}）`).join("、")}。这些方向和盘口表达不太顺，容易看着诱人但实际风险更高。`);
+      finalItems.push($("allocationNote").textContent || "资金策略：先填写计划金额，再看打满计划和保留计划。");
+      if (p1.draw > 0.285 && Math.abs(p1.home - p1.away) < 0.11) finalItems.push("额外提醒：平局位置偏敏感，即使你看好一边，也别忽略被分流到平局的风险。");
+      if (e1[0] <= 1.65 && ah1 > -0.5) finalItems.push("额外提醒：主胜赔率很低，但让球没有给深，说明主队可能被看好赢球，但未必轻松赢盘。");
+      if (e1[2] <= 2.15 && ah1 < 0) finalItems.push("额外提醒：客胜赔率偏低，但盘口还让主队让球，两套信号有冲突，最好先查临场信息。");
+      finalItems.push("下一步看什么：下一次进球、红牌或换人后，看进球方赔率有没有继续被压低，亚盘有没有同步移动。如果没有同步确认，就要防反扑或节奏反转。");
+      $("finalList").innerHTML = finalItems.map(x => `<li>${x}</li>`).join("");
+    }
+
+    function restore() {
+      const saved = localStorage.getItem("footballOddsInputs");
+      if (!saved) return;
+      try {
+        const data = JSON.parse(saved);
+        if (data.caseVersion !== CASE_VERSION || !data.values || !data.savedAt || Date.now() - data.savedAt > DAY_MS) {
+          localStorage.removeItem("footballOddsInputs");
+          return;
+        }
+        const values = normalizeMatchValues(data.values);
+        const valid = ids.filter(id => id !== "homeTeam" && id !== "awayTeam").every(id => values[id] !== undefined && values[id] !== "");
+        if (!valid) {
+          localStorage.removeItem("footballOddsInputs");
+          return;
+        }
+        ids.forEach(id => { if (values[id] !== undefined) $(id).value = values[id]; });
+        currentMatchKey = matchKeyFromValues(values);
+      } catch {}
+    }
+
+    function clearInputs() {
+      ["homeTeam", "awayTeam", "eh0", "ed0", "ea0", "eh1", "ed1", "ea1", "hw0", "aw0", "hw1", "aw1", "over0", "under0", "over1", "under1"].forEach(id => $(id).value = "");
+      $("ah0").value = "0";
+      $("ah1").value = "0";
+      $("goalLine0").value = "2.5";
+      $("goalLine1").value = "2.5";
+      $("homeScore").value = "0";
+      $("awayScore").value = "0";
+      $("matchPhase").value = "pre";
+      $("plannedStake").value = "0";
+      currentMatchKey = "";
+      localStorage.removeItem("footballOddsInputs");
+      analyze();
+      renderDailyMatches();
+      renderHistory();
+    }
+
+    function sample() {
+      applyCase(DEFAULT_CASE);
+      analyze();
+    }
+
+    async function copyReport() {
+      const text = [
+        $("verdict").textContent,
+        $("summaryText").textContent,
+        "盘口投注价值表：" + [...document.querySelectorAll("#valueTable tr")].map(row => row.innerText.replace(/\s+/g, " ")).join("；"),
+        "全部打完计划：" + [...document.querySelectorAll("#fullAllocationTable tr")].map(row => row.innerText.replace(/\s+/g, " ")).join("；"),
+        "保留资金计划：" + [...document.querySelectorAll("#reserveAllocationTable tr")].map(row => row.innerText.replace(/\s+/g, " ")).join("；"),
+        "核心概率：" + [...document.querySelectorAll(".metric")].map(m => m.innerText.replace(/\s+/g, " ")).join("；"),
+        "隐含概率说明：" + [...document.querySelectorAll("#probabilityDetails li")].map(li => li.textContent).join("；"),
+        "进球后分析：" + [...document.querySelectorAll("#scoreList li")].map(li => li.textContent).join("；"),
+        "总进球分析：" + [...document.querySelectorAll("#totalGoalList li")].map(li => li.textContent).join("；"),
+        "综合解读：" + [...$("finalList").querySelectorAll("li")].map(li => li.textContent).join("；")
+      ].join("\n");
+      try {
+        await navigator.clipboard.writeText(text);
+        $("copyBtn").textContent = "已复制";
+        setTimeout(() => $("copyBtn").textContent = "复制分析", 1200);
+      } catch {
+        alert(text);
+      }
+    }
+
+    fillHandicaps();
+    fillGoalLines();
+    fillScores();
+    prepareNumberInputs();
+    applyCase(DEFAULT_CASE);
+    restore();
+    ids.forEach(id => $(id).addEventListener("input", analyze));
+    ids.forEach(id => $(id).addEventListener("change", analyze));
+    $("sampleBtn").addEventListener("click", sample);
+    $("clearBtn").addEventListener("click", clearInputs);
+    $("copyBtn").addEventListener("click", copyReport);
+    $("startAnalysisBtn").addEventListener("click", startAnalysis);
+    $("recordBtn").addEventListener("click", recordSnapshot);
+    $("clearHistoryBtn").addEventListener("click", clearHistory);
+    document.querySelectorAll(".view-tab").forEach(button => {
+      button.addEventListener("click", () => setActiveView(button.dataset.view));
+    });
+    analyze();
+    renderDailyMatches();
+    renderHistory();
+    setActiveView("dashboard");
+  </script>
+</body>
+</html>

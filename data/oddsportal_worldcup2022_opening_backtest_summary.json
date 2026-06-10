@@ -1,0 +1,10 @@
+{
+  "matches_with_opening": 64,
+  "bets_when_closing_improved": 187,
+  "wins": 86,
+  "pushes": 5,
+  "losses": 96,
+  "profit_units": -3.77,
+  "roi": -0.0202,
+  "note": "Uses bet365 opening and closing odds from OddsPortal history."
+}

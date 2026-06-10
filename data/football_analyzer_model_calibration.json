@@ -1,0 +1,3098 @@
+{
+  "sealed_features": "data\\worldcup2022_odds_features_sealed.json",
+  "sealed_results": "data\\worldcup2022_results_sealed.json",
+  "best_model": {
+    "config": {
+      "drop_weight": 75,
+      "min_drop": 0.015,
+      "min_score": 1.5,
+      "total_bonus": 2.0,
+      "asian_bonus": 1.4,
+      "euro_bonus": -1.2,
+      "min_euro_odds": 1.8,
+      "low_euro_penalty": 4,
+      "max_picks_per_match": 2
+    },
+    "bets": 111,
+    "wins": 59,
+    "pushes": 3,
+    "losses": 49,
+    "profit_units": 14.5,
+    "roi": 0.1306,
+    "by_market": {
+      "total": {
+        "bets": 34,
+        "wins": 24,
+        "pushes": 0,
+        "losses": 10,
+        "profit_units": 6.88,
+        "roi": 0.2024
+      },
+      "asian": {
+        "bets": 50,
+        "wins": 24,
+        "pushes": 3,
+        "losses": 23,
+        "profit_units": -0.34,
+        "roi": -0.0068
+      },
+      "1x2": {
+        "bets": 27,
+        "wins": 11,
+        "pushes": 0,
+        "losses": 16,
+        "profit_units": 7.96,
+        "roi": 0.2948
+      }
+    },
+    "sample_bets": [
+      {
+        "market": "total",
+        "side": "under",
+        "odds": 1.5,
+        "drop": 0.12790697674418602,
+        "score": 7.593023255813952,
+        "match_id": "wc2022-01",
+        "match": "Qatar - Ecuador",
+        "pnl": 0.5
+      },
+      {
+        "market": "asian",
+        "side": "away",
+        "odds": 1.89,
+        "drop": 0.06435643564356441,
+        "score": 7.426732673267332,
+        "match_id": "wc2022-01",
+        "match": "Qatar - Ecuador",
+        "pnl": 0.8899999999999999
+      },
+      {
+        "market": "total",
+        "side": "under",
+        "odds": 1.66,
+        "drop": 0.12631578947368421,
+        "score": 9.473684210526317,
+        "match_id": "wc2022-02",
+        "match": "England - Iran",
+        "pnl": -1
+      },
+      {
+        "market": "total",
+        "side": "under",
+        "odds": 1.61,
+        "drop": 0.06395348837209296,
+        "score": 4.7965116279069715,
+        "match_id": "wc2022-03",
+        "match": "Senegal - Netherlands",
+        "pnl": 0.6100000000000001
+      },
+      {
+        "market": "total",
+        "side": "over",
+        "odds": 2.3,
+        "drop": 0.02953586497890307,
+        "score": 5.41518987341773,
+        "match_id": "wc2022-04",
+        "match": "USA - Wales",
+        "pnl": -1
+      },
+      {
+        "market": "asian",
+        "side": "home",
+        "odds": 1.7,
+        "drop": 0.06593406593406599,
+        "score": 4.345054945054949,
+        "match_id": "wc2022-04",
+        "match": "USA - Wales",
+        "pnl": 0
+      },
+      {
+        "market": "asian",
+        "side": "home",
+        "odds": 2.42,
+        "drop": 0.29855072463768123,
+        "score": 24.19130434782609,
+        "match_id": "wc2022-05",
+        "match": "Argentina - Saudi Arabia",
+        "pnl": -1
+      },
+      {
+        "market": "total",
+        "side": "over",
+        "odds": 1.57,
+        "drop": 0.054216867469879436,
+        "score": 2.0662650602409576,
+        "match_id": "wc2022-05",
+        "match": "Argentina - Saudi Arabia",
+        "pnl": 0.5700000000000001
+      },
+      {
+        "market": "1x2",
+        "side": "2",
+        "odds": 6.0,
+        "drop": 0.14285714285714285,
+        "score": 8.314285714285715,
+        "match_id": "wc2022-06",
+        "match": "Denmark - Tunisia",
+        "pnl": -1
+      },
+      {
+        "market": "asian",
+        "side": "home",
+        "odds": 2.85,
+        "drop": 0.08064516129032258,
+        "score": 7.848387096774193,
+        "match_id": "wc2022-07",
+        "match": "France - Australia",
+        "pnl": 1.85
+      }
+    ]
+  },
+  "top_models": [
+    {
+      "config": {
+        "drop_weight": 75,
+        "min_drop": 0.015,
+        "min_score": 1.5,
+        "total_bonus": 2.0,
+        "asian_bonus": 1.4,
+        "euro_bonus": -1.2,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 111,
+      "wins": 59,
+      "pushes": 3,
+      "losses": 49,
+      "profit_units": 14.5,
+      "roi": 0.1306,
+      "by_market": {
+        "total": {
+          "bets": 34,
+          "wins": 24,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.88,
+          "roi": 0.2024
+        },
+        "asian": {
+          "bets": 50,
+          "wins": 24,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -0.34,
+          "roi": -0.0068
+        },
+        "1x2": {
+          "bets": 27,
+          "wins": 11,
+          "pushes": 0,
+          "losses": 16,
+          "profit_units": 7.96,
+          "roi": 0.2948
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 7.593023255813952,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 7.426732673267332,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 9.473684210526317,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 4.7965116279069715,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 5.41518987341773,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 4.345054945054949,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 24.19130434782609,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 1.57,
+          "drop": 0.054216867469879436,
+          "score": 2.0662650602409576,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": 0.5700000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 8.314285714285715,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 7.848387096774193,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 75,
+        "min_drop": 0.015,
+        "min_score": 1.5,
+        "total_bonus": 2.0,
+        "asian_bonus": 1.9,
+        "euro_bonus": -1.2,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 111,
+      "wins": 59,
+      "pushes": 3,
+      "losses": 49,
+      "profit_units": 14.5,
+      "roi": 0.1306,
+      "by_market": {
+        "total": {
+          "bets": 34,
+          "wins": 24,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.88,
+          "roi": 0.2024
+        },
+        "asian": {
+          "bets": 50,
+          "wins": 24,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -0.34,
+          "roi": -0.0068
+        },
+        "1x2": {
+          "bets": 27,
+          "wins": 11,
+          "pushes": 0,
+          "losses": 16,
+          "profit_units": 7.96,
+          "roi": 0.2948
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 7.926732673267332,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 7.593023255813952,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 9.473684210526317,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 4.7965116279069715,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 5.41518987341773,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 4.845054945054949,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 24.69130434782609,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 1.57,
+          "drop": 0.054216867469879436,
+          "score": 2.0662650602409576,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": 0.5700000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 8.314285714285715,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 8.348387096774193,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 90,
+        "min_drop": 0.015,
+        "min_score": 2.5,
+        "total_bonus": 2.0,
+        "asian_bonus": 1.9,
+        "euro_bonus": -1.2,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 111,
+      "wins": 59,
+      "pushes": 3,
+      "losses": 49,
+      "profit_units": 14.18,
+      "roi": 0.1277,
+      "by_market": {
+        "total": {
+          "bets": 33,
+          "wins": 23,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.16,
+          "roi": 0.1867
+        },
+        "asian": {
+          "bets": 50,
+          "wins": 24,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -0.34,
+          "roi": -0.0068
+        },
+        "1x2": {
+          "bets": 28,
+          "wins": 12,
+          "pushes": 0,
+          "losses": 16,
+          "profit_units": 8.36,
+          "roi": 0.2986
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 9.511627906976742,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 8.892079207920796,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 11.368421052631579,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 5.755813953488366,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 5.858227848101277,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 5.83406593406594,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 29.16956521739131,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 1.57,
+          "drop": 0.054216867469879436,
+          "score": 2.879518072289149,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": 0.5700000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 10.457142857142857,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 9.558064516129033,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 90,
+        "min_drop": 0.015,
+        "min_score": 2.5,
+        "total_bonus": 2.0,
+        "asian_bonus": 1.9,
+        "euro_bonus": -0.8,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 111,
+      "wins": 59,
+      "pushes": 3,
+      "losses": 49,
+      "profit_units": 14.18,
+      "roi": 0.1277,
+      "by_market": {
+        "total": {
+          "bets": 33,
+          "wins": 23,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.16,
+          "roi": 0.1867
+        },
+        "asian": {
+          "bets": 50,
+          "wins": 24,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -0.34,
+          "roi": -0.0068
+        },
+        "1x2": {
+          "bets": 28,
+          "wins": 12,
+          "pushes": 0,
+          "losses": 16,
+          "profit_units": 8.36,
+          "roi": 0.2986
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 9.511627906976742,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 8.892079207920796,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 11.368421052631579,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 5.755813953488366,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 5.858227848101277,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 5.83406593406594,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 29.16956521739131,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 1.57,
+          "drop": 0.054216867469879436,
+          "score": 2.879518072289149,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": 0.5700000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 10.857142857142856,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 9.558064516129033,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 90,
+        "min_drop": 0.015,
+        "min_score": 2.5,
+        "total_bonus": 2.6,
+        "asian_bonus": 1.9,
+        "euro_bonus": -1.2,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 111,
+      "wins": 59,
+      "pushes": 3,
+      "losses": 49,
+      "profit_units": 14.18,
+      "roi": 0.1277,
+      "by_market": {
+        "total": {
+          "bets": 33,
+          "wins": 23,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.16,
+          "roi": 0.1867
+        },
+        "asian": {
+          "bets": 50,
+          "wins": 24,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -0.34,
+          "roi": -0.0068
+        },
+        "1x2": {
+          "bets": 28,
+          "wins": 12,
+          "pushes": 0,
+          "losses": 16,
+          "profit_units": 8.36,
+          "roi": 0.2986
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 10.111627906976741,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 8.892079207920796,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 11.968421052631578,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 6.355813953488367,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 6.458227848101276,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 5.83406593406594,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 29.16956521739131,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 1.57,
+          "drop": 0.054216867469879436,
+          "score": 3.4795180722891494,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": 0.5700000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 10.457142857142857,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 9.558064516129033,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 90,
+        "min_drop": 0.015,
+        "min_score": 2.5,
+        "total_bonus": 2.6,
+        "asian_bonus": 1.9,
+        "euro_bonus": -0.8,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 111,
+      "wins": 59,
+      "pushes": 3,
+      "losses": 49,
+      "profit_units": 14.18,
+      "roi": 0.1277,
+      "by_market": {
+        "total": {
+          "bets": 33,
+          "wins": 23,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.16,
+          "roi": 0.1867
+        },
+        "asian": {
+          "bets": 50,
+          "wins": 24,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -0.34,
+          "roi": -0.0068
+        },
+        "1x2": {
+          "bets": 28,
+          "wins": 12,
+          "pushes": 0,
+          "losses": 16,
+          "profit_units": 8.36,
+          "roi": 0.2986
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 10.111627906976741,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 8.892079207920796,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 11.968421052631578,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 6.355813953488367,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 6.458227848101276,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 5.83406593406594,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 29.16956521739131,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 1.57,
+          "drop": 0.054216867469879436,
+          "score": 3.4795180722891494,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": 0.5700000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 10.857142857142856,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 9.558064516129033,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 75,
+        "min_drop": 0.015,
+        "min_score": 1.5,
+        "total_bonus": 1.4,
+        "asian_bonus": 1.4,
+        "euro_bonus": -1.2,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 110,
+      "wins": 58,
+      "pushes": 3,
+      "losses": 49,
+      "profit_units": 13.93,
+      "roi": 0.1266,
+      "by_market": {
+        "total": {
+          "bets": 33,
+          "wins": 23,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.31,
+          "roi": 0.1912
+        },
+        "asian": {
+          "bets": 50,
+          "wins": 24,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -0.34,
+          "roi": -0.0068
+        },
+        "1x2": {
+          "bets": 27,
+          "wins": 11,
+          "pushes": 0,
+          "losses": 16,
+          "profit_units": 7.96,
+          "roi": 0.2948
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 7.426732673267332,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 6.993023255813952,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 8.873684210526317,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 4.196511627906972,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 4.81518987341773,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 4.345054945054949,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 24.19130434782609,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 8.314285714285715,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 7.848387096774193,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.09,
+          "drop": 0.12184873949579834,
+          "score": 11.738655462184875,
+          "match_id": "wc2022-08",
+          "match": "Mexico - Poland",
+          "pnl": -1
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 75,
+        "min_drop": 0.015,
+        "min_score": 1.5,
+        "total_bonus": 1.4,
+        "asian_bonus": 1.9,
+        "euro_bonus": -1.2,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 110,
+      "wins": 58,
+      "pushes": 3,
+      "losses": 49,
+      "profit_units": 13.93,
+      "roi": 0.1266,
+      "by_market": {
+        "total": {
+          "bets": 33,
+          "wins": 23,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.31,
+          "roi": 0.1912
+        },
+        "asian": {
+          "bets": 50,
+          "wins": 24,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -0.34,
+          "roi": -0.0068
+        },
+        "1x2": {
+          "bets": 27,
+          "wins": 11,
+          "pushes": 0,
+          "losses": 16,
+          "profit_units": 7.96,
+          "roi": 0.2948
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 7.926732673267332,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 6.993023255813952,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 8.873684210526317,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 4.196511627906972,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 4.845054945054949,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 4.81518987341773,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 24.69130434782609,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 8.314285714285715,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 8.348387096774193,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.09,
+          "drop": 0.12184873949579834,
+          "score": 12.238655462184875,
+          "match_id": "wc2022-08",
+          "match": "Mexico - Poland",
+          "pnl": -1
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 75,
+        "min_drop": 0.015,
+        "min_score": 2.5,
+        "total_bonus": 2.6,
+        "asian_bonus": 1.9,
+        "euro_bonus": -0.8,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 110,
+      "wins": 58,
+      "pushes": 3,
+      "losses": 49,
+      "profit_units": 13.82,
+      "roi": 0.1256,
+      "by_market": {
+        "total": {
+          "bets": 34,
+          "wins": 24,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.88,
+          "roi": 0.2024
+        },
+        "asian": {
+          "bets": 49,
+          "wins": 23,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -1.02,
+          "roi": -0.0208
+        },
+        "1x2": {
+          "bets": 27,
+          "wins": 11,
+          "pushes": 0,
+          "losses": 16,
+          "profit_units": 7.96,
+          "roi": 0.2948
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 8.193023255813952,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 7.926732673267332,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 10.073684210526316,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 5.396511627906971,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 6.0151898734177305,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 4.845054945054949,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 24.69130434782609,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 1.57,
+          "drop": 0.054216867469879436,
+          "score": 2.666265060240958,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": 0.5700000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 8.714285714285714,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 8.348387096774193,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 75,
+        "min_drop": 0.015,
+        "min_score": 2.5,
+        "total_bonus": 2.6,
+        "asian_bonus": 1.9,
+        "euro_bonus": -0.4,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 110,
+      "wins": 58,
+      "pushes": 3,
+      "losses": 49,
+      "profit_units": 13.82,
+      "roi": 0.1256,
+      "by_market": {
+        "total": {
+          "bets": 34,
+          "wins": 24,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.88,
+          "roi": 0.2024
+        },
+        "asian": {
+          "bets": 49,
+          "wins": 23,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -1.02,
+          "roi": -0.0208
+        },
+        "1x2": {
+          "bets": 27,
+          "wins": 11,
+          "pushes": 0,
+          "losses": 16,
+          "profit_units": 7.96,
+          "roi": 0.2948
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 8.193023255813952,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 7.926732673267332,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 10.073684210526316,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 5.396511627906971,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 6.0151898734177305,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 4.845054945054949,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 24.69130434782609,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 1.57,
+          "drop": 0.054216867469879436,
+          "score": 2.666265060240958,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": 0.5700000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 9.114285714285714,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 8.348387096774193,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 75,
+        "min_drop": 0.015,
+        "min_score": 2.5,
+        "total_bonus": 2.0,
+        "asian_bonus": 1.4,
+        "euro_bonus": -1.2,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 107,
+      "wins": 56,
+      "pushes": 3,
+      "losses": 48,
+      "profit_units": 13.63,
+      "roi": 0.1274,
+      "by_market": {
+        "total": {
+          "bets": 32,
+          "wins": 22,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 5.69,
+          "roi": 0.1778
+        },
+        "asian": {
+          "bets": 49,
+          "wins": 23,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -1.02,
+          "roi": -0.0208
+        },
+        "1x2": {
+          "bets": 26,
+          "wins": 11,
+          "pushes": 0,
+          "losses": 15,
+          "profit_units": 8.96,
+          "roi": 0.3446
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 7.593023255813952,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 7.426732673267332,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 9.473684210526317,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 4.7965116279069715,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 5.41518987341773,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 4.345054945054949,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 24.19130434782609,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 8.314285714285715,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 7.848387096774193,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.09,
+          "drop": 0.12184873949579834,
+          "score": 11.738655462184875,
+          "match_id": "wc2022-08",
+          "match": "Mexico - Poland",
+          "pnl": -1
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 75,
+        "min_drop": 0.015,
+        "min_score": 2.5,
+        "total_bonus": 2.0,
+        "asian_bonus": 1.9,
+        "euro_bonus": -1.2,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 107,
+      "wins": 56,
+      "pushes": 3,
+      "losses": 48,
+      "profit_units": 13.63,
+      "roi": 0.1274,
+      "by_market": {
+        "total": {
+          "bets": 32,
+          "wins": 22,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 5.69,
+          "roi": 0.1778
+        },
+        "asian": {
+          "bets": 49,
+          "wins": 23,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -1.02,
+          "roi": -0.0208
+        },
+        "1x2": {
+          "bets": 26,
+          "wins": 11,
+          "pushes": 0,
+          "losses": 15,
+          "profit_units": 8.96,
+          "roi": 0.3446
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 7.926732673267332,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 7.593023255813952,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 9.473684210526317,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 4.7965116279069715,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 5.41518987341773,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 4.845054945054949,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 24.69130434782609,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 8.314285714285715,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 8.348387096774193,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.09,
+          "drop": 0.12184873949579834,
+          "score": 12.238655462184875,
+          "match_id": "wc2022-08",
+          "match": "Mexico - Poland",
+          "pnl": -1
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 90,
+        "min_drop": 0.015,
+        "min_score": 2.5,
+        "total_bonus": 2.0,
+        "asian_bonus": 0.9,
+        "euro_bonus": -1.2,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 110,
+      "wins": 58,
+      "pushes": 3,
+      "losses": 49,
+      "profit_units": 13.5,
+      "roi": 0.1227,
+      "by_market": {
+        "total": {
+          "bets": 33,
+          "wins": 23,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.16,
+          "roi": 0.1867
+        },
+        "asian": {
+          "bets": 49,
+          "wins": 23,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -1.02,
+          "roi": -0.0208
+        },
+        "1x2": {
+          "bets": 28,
+          "wins": 12,
+          "pushes": 0,
+          "losses": 16,
+          "profit_units": 8.36,
+          "roi": 0.2986
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 9.511627906976742,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 7.892079207920798,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 11.368421052631579,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 5.755813953488366,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 5.858227848101277,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 4.83406593406594,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 28.16956521739131,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 1.57,
+          "drop": 0.054216867469879436,
+          "score": 2.879518072289149,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": 0.5700000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 10.457142857142857,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 8.558064516129033,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 90,
+        "min_drop": 0.015,
+        "min_score": 2.5,
+        "total_bonus": 2.0,
+        "asian_bonus": 1.4,
+        "euro_bonus": -1.2,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 110,
+      "wins": 58,
+      "pushes": 3,
+      "losses": 49,
+      "profit_units": 13.5,
+      "roi": 0.1227,
+      "by_market": {
+        "total": {
+          "bets": 33,
+          "wins": 23,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.16,
+          "roi": 0.1867
+        },
+        "asian": {
+          "bets": 49,
+          "wins": 23,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -1.02,
+          "roi": -0.0208
+        },
+        "1x2": {
+          "bets": 28,
+          "wins": 12,
+          "pushes": 0,
+          "losses": 16,
+          "profit_units": 8.36,
+          "roi": 0.2986
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 9.511627906976742,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 8.392079207920796,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 11.368421052631579,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 5.755813953488366,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 5.858227848101277,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 5.33406593406594,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 28.66956521739131,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 1.57,
+          "drop": 0.054216867469879436,
+          "score": 2.879518072289149,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": 0.5700000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 10.457142857142857,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 9.058064516129033,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 90,
+        "min_drop": 0.015,
+        "min_score": 2.5,
+        "total_bonus": 2.0,
+        "asian_bonus": 1.4,
+        "euro_bonus": -0.8,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 110,
+      "wins": 58,
+      "pushes": 3,
+      "losses": 49,
+      "profit_units": 13.5,
+      "roi": 0.1227,
+      "by_market": {
+        "total": {
+          "bets": 33,
+          "wins": 23,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.16,
+          "roi": 0.1867
+        },
+        "asian": {
+          "bets": 49,
+          "wins": 23,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -1.02,
+          "roi": -0.0208
+        },
+        "1x2": {
+          "bets": 28,
+          "wins": 12,
+          "pushes": 0,
+          "losses": 16,
+          "profit_units": 8.36,
+          "roi": 0.2986
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 9.511627906976742,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 8.392079207920796,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 11.368421052631579,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 5.755813953488366,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 5.858227848101277,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 5.33406593406594,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 28.66956521739131,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 1.57,
+          "drop": 0.054216867469879436,
+          "score": 2.879518072289149,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": 0.5700000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 10.857142857142856,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 9.058064516129033,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 90,
+        "min_drop": 0.015,
+        "min_score": 2.5,
+        "total_bonus": 2.6,
+        "asian_bonus": 0.9,
+        "euro_bonus": -1.2,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 110,
+      "wins": 58,
+      "pushes": 3,
+      "losses": 49,
+      "profit_units": 13.5,
+      "roi": 0.1227,
+      "by_market": {
+        "total": {
+          "bets": 33,
+          "wins": 23,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.16,
+          "roi": 0.1867
+        },
+        "asian": {
+          "bets": 49,
+          "wins": 23,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -1.02,
+          "roi": -0.0208
+        },
+        "1x2": {
+          "bets": 28,
+          "wins": 12,
+          "pushes": 0,
+          "losses": 16,
+          "profit_units": 8.36,
+          "roi": 0.2986
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 10.111627906976741,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 7.892079207920798,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 11.968421052631578,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 6.355813953488367,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 6.458227848101276,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 4.83406593406594,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 28.16956521739131,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 1.57,
+          "drop": 0.054216867469879436,
+          "score": 3.4795180722891494,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": 0.5700000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 10.457142857142857,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 8.558064516129033,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 90,
+        "min_drop": 0.015,
+        "min_score": 2.5,
+        "total_bonus": 2.6,
+        "asian_bonus": 1.4,
+        "euro_bonus": -1.2,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 110,
+      "wins": 58,
+      "pushes": 3,
+      "losses": 49,
+      "profit_units": 13.5,
+      "roi": 0.1227,
+      "by_market": {
+        "total": {
+          "bets": 33,
+          "wins": 23,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.16,
+          "roi": 0.1867
+        },
+        "asian": {
+          "bets": 49,
+          "wins": 23,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -1.02,
+          "roi": -0.0208
+        },
+        "1x2": {
+          "bets": 28,
+          "wins": 12,
+          "pushes": 0,
+          "losses": 16,
+          "profit_units": 8.36,
+          "roi": 0.2986
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 10.111627906976741,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 8.392079207920796,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 11.968421052631578,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 6.355813953488367,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 6.458227848101276,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 5.33406593406594,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 28.66956521739131,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 1.57,
+          "drop": 0.054216867469879436,
+          "score": 3.4795180722891494,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": 0.5700000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 10.457142857142857,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 9.058064516129033,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 90,
+        "min_drop": 0.015,
+        "min_score": 2.5,
+        "total_bonus": 2.6,
+        "asian_bonus": 1.4,
+        "euro_bonus": -0.8,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 110,
+      "wins": 58,
+      "pushes": 3,
+      "losses": 49,
+      "profit_units": 13.5,
+      "roi": 0.1227,
+      "by_market": {
+        "total": {
+          "bets": 33,
+          "wins": 23,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.16,
+          "roi": 0.1867
+        },
+        "asian": {
+          "bets": 49,
+          "wins": 23,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -1.02,
+          "roi": -0.0208
+        },
+        "1x2": {
+          "bets": 28,
+          "wins": 12,
+          "pushes": 0,
+          "losses": 16,
+          "profit_units": 8.36,
+          "roi": 0.2986
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 10.111627906976741,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 8.392079207920796,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 11.968421052631578,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 6.355813953488367,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 6.458227848101276,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 5.33406593406594,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 28.66956521739131,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 1.57,
+          "drop": 0.054216867469879436,
+          "score": 3.4795180722891494,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": 0.5700000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 10.857142857142856,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.85,
+          "drop": 0.08064516129032258,
+          "score": 9.058064516129033,
+          "match_id": "wc2022-07",
+          "match": "France - Australia",
+          "pnl": 1.85
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 75,
+        "min_drop": 0.015,
+        "min_score": 1.5,
+        "total_bonus": 2.0,
+        "asian_bonus": 1.9,
+        "euro_bonus": -0.8,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 112,
+      "wins": 59,
+      "pushes": 3,
+      "losses": 50,
+      "profit_units": 13.5,
+      "roi": 0.1205,
+      "by_market": {
+        "total": {
+          "bets": 34,
+          "wins": 24,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.88,
+          "roi": 0.2024
+        },
+        "asian": {
+          "bets": 50,
+          "wins": 24,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -0.34,
+          "roi": -0.0068
+        },
+        "1x2": {
+          "bets": 28,
+          "wins": 11,
+          "pushes": 0,
+          "losses": 17,
+          "profit_units": 6.96,
+          "roi": 0.2486
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 7.926732673267332,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 7.593023255813952,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 9.473684210526317,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 4.7965116279069715,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "X",
+          "odds": 3.6,
+          "drop": 0.03999999999999997,
+          "score": 1.7999999999999976,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 5.41518987341773,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 4.845054945054949,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 24.69130434782609,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 1.57,
+          "drop": 0.054216867469879436,
+          "score": 2.0662650602409576,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": 0.5700000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 8.714285714285714,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        }
+      ]
+    },
+    {
+      "config": {
+        "drop_weight": 75,
+        "min_drop": 0.015,
+        "min_score": 1.5,
+        "total_bonus": 2.6,
+        "asian_bonus": 1.9,
+        "euro_bonus": -0.8,
+        "min_euro_odds": 1.8,
+        "low_euro_penalty": 4,
+        "max_picks_per_match": 2
+      },
+      "bets": 112,
+      "wins": 59,
+      "pushes": 3,
+      "losses": 50,
+      "profit_units": 13.5,
+      "roi": 0.1205,
+      "by_market": {
+        "total": {
+          "bets": 34,
+          "wins": 24,
+          "pushes": 0,
+          "losses": 10,
+          "profit_units": 6.88,
+          "roi": 0.2024
+        },
+        "asian": {
+          "bets": 50,
+          "wins": 24,
+          "pushes": 3,
+          "losses": 23,
+          "profit_units": -0.34,
+          "roi": -0.0068
+        },
+        "1x2": {
+          "bets": 28,
+          "wins": 11,
+          "pushes": 0,
+          "losses": 17,
+          "profit_units": 6.96,
+          "roi": 0.2486
+        }
+      },
+      "sample_bets": [
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.5,
+          "drop": 0.12790697674418602,
+          "score": 8.193023255813952,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.5
+        },
+        {
+          "market": "asian",
+          "side": "away",
+          "odds": 1.89,
+          "drop": 0.06435643564356441,
+          "score": 7.926732673267332,
+          "match_id": "wc2022-01",
+          "match": "Qatar - Ecuador",
+          "pnl": 0.8899999999999999
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.66,
+          "drop": 0.12631578947368421,
+          "score": 10.073684210526316,
+          "match_id": "wc2022-02",
+          "match": "England - Iran",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "under",
+          "odds": 1.61,
+          "drop": 0.06395348837209296,
+          "score": 5.396511627906971,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": 0.6100000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "X",
+          "odds": 3.6,
+          "drop": 0.03999999999999997,
+          "score": 1.7999999999999976,
+          "match_id": "wc2022-03",
+          "match": "Senegal - Netherlands",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 2.3,
+          "drop": 0.02953586497890307,
+          "score": 6.0151898734177305,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": -1
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 1.7,
+          "drop": 0.06593406593406599,
+          "score": 4.845054945054949,
+          "match_id": "wc2022-04",
+          "match": "USA - Wales",
+          "pnl": 0
+        },
+        {
+          "market": "asian",
+          "side": "home",
+          "odds": 2.42,
+          "drop": 0.29855072463768123,
+          "score": 24.69130434782609,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": -1
+        },
+        {
+          "market": "total",
+          "side": "over",
+          "odds": 1.57,
+          "drop": 0.054216867469879436,
+          "score": 2.666265060240958,
+          "match_id": "wc2022-05",
+          "match": "Argentina - Saudi Arabia",
+          "pnl": 0.5700000000000001
+        },
+        {
+          "market": "1x2",
+          "side": "2",
+          "odds": 6.0,
+          "drop": 0.14285714285714285,
+          "score": 8.714285714285714,
+          "match_id": "wc2022-06",
+          "match": "Denmark - Tunisia",
+          "pnl": -1
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Results were stored separately from odds features before optimization.",
+    "Recommendation is optimized for expected return and market tolerance: total goals first, Asian handicap second, 1X2 last when scores are close.",
+    "1X2 odds below 1.80 are penalized heavily and should not be a main recommendation."
+  ]
+}

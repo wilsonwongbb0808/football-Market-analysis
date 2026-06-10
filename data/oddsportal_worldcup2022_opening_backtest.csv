@@ -1,0 +1,188 @@
+match,pick,pnl
+Qatar - Ecuador,1x2_X,-1
+Qatar - Ecuador,1x2_2,1.2000000000000002
+Qatar - Ecuador,ah_away,0.8899999999999999
+Qatar - Ecuador,under,0.5
+England - Iran,1x2_1,0.3600000000000001
+England - Iran,ah_away,-1
+England - Iran,under,-1
+Senegal - Netherlands,1x2_X,-1
+Senegal - Netherlands,under,0.6100000000000001
+USA - Wales,1x2_1,-1
+USA - Wales,1x2_X,2.1
+USA - Wales,ah_home,0
+USA - Wales,ah_away,0
+USA - Wales,over,-1
+Argentina - Saudi Arabia,1x2_1,-1
+Argentina - Saudi Arabia,ah_home,-1
+Argentina - Saudi Arabia,over,0.5700000000000001
+Denmark - Tunisia,1x2_2,-1
+France - Australia,ah_home,1.85
+Mexico - Poland,1x2_1,-1
+Mexico - Poland,ah_home,-1
+Mexico - Poland,under,0.6100000000000001
+Belgium - Canada,1x2_X,-1
+Belgium - Canada,1x2_2,-1
+Belgium - Canada,ah_away,-1
+Belgium - Canada,under,1.0
+Germany - Japan,1x2_2,5.0
+Germany - Japan,ah_home,-1
+Germany - Japan,over,0.48
+Morocco - Croatia,1x2_1,-1
+Morocco - Croatia,1x2_X,2.25
+Morocco - Croatia,ah_home,0.99
+Morocco - Croatia,over,-1
+Spain - Costa Rica,1x2_1,0.1200000000000001
+Spain - Costa Rica,ah_home,0.52
+Spain - Costa Rica,over,0.5
+Brazil - Serbia,1x2_1,0.43999999999999995
+Brazil - Serbia,ah_home,1.0499999999999998
+Portugal - Ghana,1x2_1,0.28
+Portugal - Ghana,ah_home,-1
+Portugal - Ghana,over,0.72
+Switzerland - Cameroon,1x2_1,0.72
+Switzerland - Cameroon,ah_home,0.6799999999999999
+Switzerland - Cameroon,over,-1
+Uruguay - South Korea,1x2_1,-1
+Uruguay - South Korea,ah_home,-1
+Uruguay - South Korea,over,-1
+England - USA,1x2_1,-1
+England - USA,ah_home,-1
+Netherlands - Ecuador,1x2_X,2.3
+Netherlands - Ecuador,1x2_2,-1
+Netherlands - Ecuador,ah_away,1.35
+Netherlands - Ecuador,under,0.5700000000000001
+Qatar - Senegal,1x2_2,0.7
+Qatar - Senegal,ah_away,0.7
+Qatar - Senegal,under,-1
+Wales - Iran,ah_home,-1
+Wales - Iran,under,0.53
+Argentina - Mexico,1x2_1,0.55
+Argentina - Mexico,ah_home,0.73
+Argentina - Mexico,ah_away,-1
+Argentina - Mexico,under,0.6599999999999999
+France - Denmark,1x2_1,0.8
+France - Denmark,ah_home,0.8300000000000001
+Poland - Saudi Arabia,1x2_2,-1
+Poland - Saudi Arabia,ah_away,-1
+Poland - Saudi Arabia,under,0.6100000000000001
+Tunisia - Australia,1x2_1,-1
+Tunisia - Australia,ah_home,-1
+Tunisia - Australia,over,-1
+Belgium - Morocco,1x2_X,-1
+Belgium - Morocco,1x2_2,3.2
+Belgium - Morocco,ah_away,0.9299999999999999
+Belgium - Morocco,under,0.6100000000000001
+Croatia - Canada,1x2_X,-1
+Croatia - Canada,1x2_2,-1
+Croatia - Canada,under,-1
+Japan - Costa Rica,1x2_1,-1
+Japan - Costa Rica,ah_home,-1
+Japan - Costa Rica,over,-1
+Spain - Germany,1x2_X,2.1
+Spain - Germany,ah_away,0.6299999999999999
+Spain - Germany,over,-1
+Brazil - Switzerland,ah_away,0
+Brazil - Switzerland,under,0.72
+Cameroon - Serbia,1x2_2,-1
+Cameroon - Serbia,ah_away,-1
+Cameroon - Serbia,over,0.99
+Portugal - Uruguay,ah_home,0.96
+Portugal - Uruguay,under,0.6100000000000001
+South Korea - Ghana,1x2_X,-1
+South Korea - Ghana,1x2_2,-1
+South Korea - Ghana,under,1.0
+Ecuador - Senegal,1x2_1,-1
+Ecuador - Senegal,1x2_X,-1
+Ecuador - Senegal,ah_home,-1
+Ecuador - Senegal,under,-1
+Iran - USA,1x2_2,0.8999999999999999
+Iran - USA,ah_away,0.9299999999999999
+Iran - USA,under,0.6599999999999999
+Netherlands - Qatar,1x2_1,0.17999999999999994
+Netherlands - Qatar,ah_home,0
+Netherlands - Qatar,over,-1
+Wales - England,1x2_1,-1
+Wales - England,over,0.53
+Australia - Denmark,1x2_2,-1
+Australia - Denmark,ah_away,-1
+Australia - Denmark,over,-1
+Poland - Argentina,1x2_2,0.3999999999999999
+Poland - Argentina,ah_away,1.0299999999999998
+Poland - Argentina,under,0.72
+Tunisia - France,1x2_1,4.75
+Tunisia - France,1x2_X,-1
+Tunisia - France,ah_home,0.5800000000000001
+Tunisia - France,under,0.6599999999999999
+Canada - Morocco,1x2_2,0.8300000000000001
+Canada - Morocco,ah_away,0.8500000000000001
+Canada - Morocco,under,-1
+Costa Rica - Germany,1x2_2,0.08000000000000007
+Costa Rica - Germany,over,0.3600000000000001
+Croatia - Belgium,1x2_1,-1
+Croatia - Belgium,1x2_X,2.4
+Croatia - Belgium,ah_home,0.8500000000000001
+Croatia - Belgium,under,0.8400000000000001
+Japan - Spain,1x2_1,5.5
+Japan - Spain,1x2_X,-1
+Japan - Spain,ah_home,1.25
+Japan - Spain,under,-1
+Cameroon - Brazil,1x2_2,-1
+Cameroon - Brazil,ah_away,-1
+Ghana - Uruguay,1x2_1,-1
+Ghana - Uruguay,over,-1
+Serbia - Switzerland,1x2_1,-1
+Serbia - Switzerland,1x2_X,-1
+Serbia - Switzerland,ah_home,-1
+Serbia - Switzerland,over,0.9299999999999999
+South Korea - Portugal,1x2_1,3.0
+South Korea - Portugal,1x2_X,-1
+South Korea - Portugal,ah_home,1.0299999999999998
+South Korea - Portugal,under,-1
+Argentina - Australia,1x2_2,-1
+Argentina - Australia,ah_home,-1
+Argentina - Australia,over,0.3999999999999999
+Netherlands - USA,ah_away,-1
+Netherlands - USA,over,1.2999999999999998
+England - Senegal,1x2_X,-1
+England - Senegal,1x2_2,-1
+England - Senegal,ah_away,-1
+England - Senegal,under,-1
+France - Poland,1x2_1,0.25
+France - Poland,ah_home,0.6799999999999999
+France - Poland,over,0.6200000000000001
+Brazil - South Korea,1x2_2,-1
+Brazil - South Korea,over,0.53
+Japan - Croatia,1x2_2,-1
+Japan - Croatia,ah_home,0.8
+Japan - Croatia,under,0.6100000000000001
+Morocco - Spain,1x2_1,-1
+Morocco - Spain,ah_home,1.0
+Portugal - Switzerland,1x2_2,-1
+Portugal - Switzerland,ah_away,-1
+Portugal - Switzerland,over,0.8899999999999999
+Croatia - Brazil,1x2_2,-1
+Croatia - Brazil,ah_home,0.94
+Netherlands - Argentina,1x2_X,2.1
+Netherlands - Argentina,1x2_2,-1
+Netherlands - Argentina,ah_home,0.98
+Netherlands - Argentina,under,-1
+England - France,1x2_1,-1
+England - France,1x2_X,-1
+England - France,ah_home,-1
+England - France,under,-1
+Morocco - Portugal,1x2_2,-1
+Morocco - Portugal,ah_away,-1
+Morocco - Portugal,over,-1
+Argentina - Croatia,1x2_X,-1
+Argentina - Croatia,1x2_2,-1
+Argentina - Croatia,ah_away,-1
+Argentina - Croatia,under,-1
+France - Morocco,ah_away,-1
+Croatia - Morocco,1x2_1,1.2000000000000002
+Croatia - Morocco,ah_home,0.99
+Croatia - Morocco,over,0.8600000000000001
+Argentina - France,1x2_1,-1
+Argentina - France,1x2_X,2.1
+Argentina - France,ah_home,0
+Argentina - France,over,1.2000000000000002

@@ -1,0 +1,15 @@
+{
+  "total_matches": 64,
+  "saved_files": 64,
+  "complete_three_markets": 64,
+  "missing_files": [],
+  "missing_markets": [],
+  "fallback_markets": [
+    {
+      "match": "Costa Rica - Germany",
+      "expected": "asian_handicap_+2_25_market",
+      "saved": "asian_handicap_+2_market",
+      "reason": "OddsHarvester football market registry does not support +2.25 Asian handicap."
+    }
+  ]
+}

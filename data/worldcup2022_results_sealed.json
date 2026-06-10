@@ -1,0 +1,386 @@
+[
+  {
+    "match_id": "wc2022-01",
+    "match": "Qatar - Ecuador",
+    "home_score": 0,
+    "away_score": 2
+  },
+  {
+    "match_id": "wc2022-02",
+    "match": "England - Iran",
+    "home_score": 6,
+    "away_score": 2
+  },
+  {
+    "match_id": "wc2022-03",
+    "match": "Senegal - Netherlands",
+    "home_score": 0,
+    "away_score": 2
+  },
+  {
+    "match_id": "wc2022-04",
+    "match": "USA - Wales",
+    "home_score": 1,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-05",
+    "match": "Argentina - Saudi Arabia",
+    "home_score": 1,
+    "away_score": 2
+  },
+  {
+    "match_id": "wc2022-06",
+    "match": "Denmark - Tunisia",
+    "home_score": 0,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-07",
+    "match": "France - Australia",
+    "home_score": 4,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-08",
+    "match": "Mexico - Poland",
+    "home_score": 0,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-09",
+    "match": "Belgium - Canada",
+    "home_score": 1,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-10",
+    "match": "Germany - Japan",
+    "home_score": 1,
+    "away_score": 2
+  },
+  {
+    "match_id": "wc2022-11",
+    "match": "Morocco - Croatia",
+    "home_score": 0,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-12",
+    "match": "Spain - Costa Rica",
+    "home_score": 7,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-13",
+    "match": "Brazil - Serbia",
+    "home_score": 2,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-14",
+    "match": "Portugal - Ghana",
+    "home_score": 3,
+    "away_score": 2
+  },
+  {
+    "match_id": "wc2022-15",
+    "match": "Switzerland - Cameroon",
+    "home_score": 1,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-16",
+    "match": "Uruguay - South Korea",
+    "home_score": 0,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-17",
+    "match": "England - USA",
+    "home_score": 0,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-18",
+    "match": "Netherlands - Ecuador",
+    "home_score": 1,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-19",
+    "match": "Qatar - Senegal",
+    "home_score": 1,
+    "away_score": 3
+  },
+  {
+    "match_id": "wc2022-20",
+    "match": "Wales - Iran",
+    "home_score": 0,
+    "away_score": 2
+  },
+  {
+    "match_id": "wc2022-21",
+    "match": "Argentina - Mexico",
+    "home_score": 2,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-22",
+    "match": "France - Denmark",
+    "home_score": 2,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-23",
+    "match": "Poland - Saudi Arabia",
+    "home_score": 2,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-24",
+    "match": "Tunisia - Australia",
+    "home_score": 0,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-25",
+    "match": "Belgium - Morocco",
+    "home_score": 0,
+    "away_score": 2
+  },
+  {
+    "match_id": "wc2022-26",
+    "match": "Croatia - Canada",
+    "home_score": 4,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-27",
+    "match": "Japan - Costa Rica",
+    "home_score": 0,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-28",
+    "match": "Spain - Germany",
+    "home_score": 1,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-29",
+    "match": "Brazil - Switzerland",
+    "home_score": 1,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-30",
+    "match": "Cameroon - Serbia",
+    "home_score": 3,
+    "away_score": 3
+  },
+  {
+    "match_id": "wc2022-31",
+    "match": "Portugal - Uruguay",
+    "home_score": 2,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-32",
+    "match": "South Korea - Ghana",
+    "home_score": 1,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-33",
+    "match": "Ecuador - Senegal",
+    "home_score": 1,
+    "away_score": 2
+  },
+  {
+    "match_id": "wc2022-34",
+    "match": "Iran - USA",
+    "home_score": 0,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-35",
+    "match": "Netherlands - Qatar",
+    "home_score": 2,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-36",
+    "match": "Wales - England",
+    "home_score": 0,
+    "away_score": 3
+  },
+  {
+    "match_id": "wc2022-37",
+    "match": "Australia - Denmark",
+    "home_score": 1,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-38",
+    "match": "Poland - Argentina",
+    "home_score": 0,
+    "away_score": 2
+  },
+  {
+    "match_id": "wc2022-39",
+    "match": "Saudi Arabia - Mexico",
+    "home_score": 1,
+    "away_score": 2
+  },
+  {
+    "match_id": "wc2022-40",
+    "match": "Tunisia - France",
+    "home_score": 1,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-41",
+    "match": "Canada - Morocco",
+    "home_score": 1,
+    "away_score": 2
+  },
+  {
+    "match_id": "wc2022-42",
+    "match": "Costa Rica - Germany",
+    "home_score": 2,
+    "away_score": 4
+  },
+  {
+    "match_id": "wc2022-43",
+    "match": "Croatia - Belgium",
+    "home_score": 0,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-44",
+    "match": "Japan - Spain",
+    "home_score": 2,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-45",
+    "match": "Cameroon - Brazil",
+    "home_score": 1,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-46",
+    "match": "Ghana - Uruguay",
+    "home_score": 0,
+    "away_score": 2
+  },
+  {
+    "match_id": "wc2022-47",
+    "match": "Serbia - Switzerland",
+    "home_score": 2,
+    "away_score": 3
+  },
+  {
+    "match_id": "wc2022-48",
+    "match": "South Korea - Portugal",
+    "home_score": 2,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-49",
+    "match": "Argentina - Australia",
+    "home_score": 2,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-50",
+    "match": "Netherlands - USA",
+    "home_score": 3,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-51",
+    "match": "England - Senegal",
+    "home_score": 3,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-52",
+    "match": "France - Poland",
+    "home_score": 3,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-53",
+    "match": "Brazil - South Korea",
+    "home_score": 5,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-54",
+    "match": "Japan - Croatia",
+    "home_score": 1,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-55",
+    "match": "Morocco - Spain",
+    "home_score": 0,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-56",
+    "match": "Portugal - Switzerland",
+    "home_score": 6,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-57",
+    "match": "Croatia - Brazil",
+    "home_score": 1,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-58",
+    "match": "Netherlands - Argentina",
+    "home_score": 2,
+    "away_score": 2
+  },
+  {
+    "match_id": "wc2022-59",
+    "match": "England - France",
+    "home_score": 1,
+    "away_score": 2
+  },
+  {
+    "match_id": "wc2022-60",
+    "match": "Morocco - Portugal",
+    "home_score": 1,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-61",
+    "match": "Argentina - Croatia",
+    "home_score": 3,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-62",
+    "match": "France - Morocco",
+    "home_score": 2,
+    "away_score": 0
+  },
+  {
+    "match_id": "wc2022-63",
+    "match": "Croatia - Morocco",
+    "home_score": 2,
+    "away_score": 1
+  },
+  {
+    "match_id": "wc2022-64",
+    "match": "Argentina - France",
+    "home_score": 3,
+    "away_score": 3
+  }
+]
