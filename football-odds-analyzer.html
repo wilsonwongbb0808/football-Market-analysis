@@ -754,6 +754,40 @@
       font-size: 12px;
     }
 
+    .saved-node-panel {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .saved-node-card {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fbfdfe;
+    }
+
+    .saved-node-card b {
+      display: block;
+      font-size: 14px;
+    }
+
+    .saved-node-card span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .saved-node-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
     @media (max-width: 900px) {
       .app { padding: 16px; }
       header { align-items: stretch; flex-direction: column; }
@@ -1268,8 +1302,9 @@
           <h2>保存记录</h2>
           <div class="match-cache">
             <div class="match-list" id="dailyMatchList"></div>
+            <div class="saved-node-panel" id="savedNodePanel"></div>
           </div>
-          <p class="note">最多保存 6 场，只保留 24 小时。点“载入”会回到填写页并恢复当时的数据。</p>
+          <p class="note">最多保存 6 场，只保留 24 小时。点“载入”会回到填写页；下方节点可单独回填或删除，填错一笔不用重建整场。</p>
         </section>
 
         <section class="card pro-details result-section" data-section="pro">
@@ -1593,6 +1628,7 @@
       const rows = dailyCache().sort((a, b) => b.updatedAt - a.updatedAt);
       if (!rows.length) {
         list.innerHTML = `<p class="hint">填写主队和客队后，点“开始分析”保存的场次会出现在这里；超过 24 小时会自动清理。</p>`;
+        renderSavedMatchNodes();
         return;
       }
       list.innerHTML = rows.map(row => {
@@ -1614,6 +1650,44 @@
           else loadDailyMatch(button.dataset.matchKey);
         });
       });
+      renderSavedMatchNodes();
+    }
+
+    function renderSavedMatchNodes(key = currentMatchKey) {
+      const panel = $("savedNodePanel");
+      if (!panel) return;
+      const matches = dailyCache();
+      const activeKey = key || matches[0]?.key || "";
+      if (!activeKey) {
+        panel.innerHTML = "";
+        return;
+      }
+      const match = matches.find(row => row.key === activeKey);
+      const history = loadHistory(activeKey);
+      const title = match?.name || "当前比赛";
+      if (!history.length) {
+        panel.innerHTML = `
+          <div class="saved-node-card">
+            <div><b>${title}</b><span>这场还没有记录节点。更新即时盘后点“记录当前节点”，这里就可以单独回填。</span></div>
+          </div>
+        `;
+        return;
+      }
+      panel.innerHTML = `
+        <h3>${title} 的节点</h3>
+        ${history.map((row, index) => `
+          <div class="saved-node-card">
+            <div>
+              <b>节点 ${index + 1}：${row.homeScore}-${row.awayScore}，${phaseLabel(row.matchPhase)}</b>
+              <span>${row.time || ""}；欧赔 ${fmt(row.eh)} / ${fmt(row.ed)} / ${fmt(row.ea)}；亚盘 ${handicapText(row.ah)}；大小球 ${fmtLine(row.goalLine)}</span>
+            </div>
+            <div class="saved-node-actions">
+              <button class="mini-action" type="button" data-saved-history-action="restore" data-match-key="${activeKey}" data-index="${index}">回填</button>
+              <button class="mini-action danger" type="button" data-saved-history-action="delete" data-match-key="${activeKey}" data-index="${index}">删除</button>
+            </div>
+          </div>
+        `).join("")}
+      `;
     }
 
     function saveCurrentInputs() {
@@ -3025,6 +3099,25 @@
       applySnapshotToInputs(row);
     }
 
+    function restoreSavedHistoryNode(key, index) {
+      const match = dailyCache().find(row => row.key === key);
+      const history = loadHistory(key);
+      const row = history[index];
+      if (!row) return;
+      if (match) {
+        currentMatchKey = match.key;
+        const values = normalizeMatchValues(match.values);
+        ids.forEach(id => {
+          if (values[id] !== undefined) $(id).value = values[id];
+        });
+      } else {
+        currentMatchKey = key;
+      }
+      applySnapshotToInputs(row);
+      renderHistory();
+      renderDailyMatches();
+    }
+
     function deleteHistoryNode(index) {
       const history = loadHistory();
       if (!history[index]) return;
@@ -3034,6 +3127,17 @@
       saveCurrentInputs();
       allowSaveCurrentInputs = false;
       renderHistory();
+    }
+
+    function deleteSavedHistoryNode(key, index) {
+      const history = loadHistory(key);
+      if (!history[index]) return;
+      history.splice(index, 1);
+      saveHistory(history, key);
+      const rows = dailyCache().map(row => row.key === key ? { ...row, history, updatedAt: Date.now() } : row);
+      saveDailyCache(rows);
+      renderDailyMatches();
+      if (key === matchLedgerKey()) renderHistory();
     }
 
     function renderHistory() {
@@ -3482,6 +3586,15 @@
       if (!Number.isInteger(index)) return;
       if (button.dataset.historyAction === "restore") restoreHistoryNode(index);
       if (button.dataset.historyAction === "delete") deleteHistoryNode(index);
+    });
+    $("savedNodePanel").addEventListener("click", event => {
+      const button = event.target.closest("[data-saved-history-action]");
+      if (!button) return;
+      const index = Number(button.dataset.index);
+      const key = button.dataset.matchKey || "";
+      if (!key || !Number.isInteger(index)) return;
+      if (button.dataset.savedHistoryAction === "restore") restoreSavedHistoryNode(key, index);
+      if (button.dataset.savedHistoryAction === "delete") deleteSavedHistoryNode(key, index);
     });
     document.querySelectorAll(".view-tab").forEach(button => {
       button.addEventListener("click", () => setActiveView(button.dataset.view));
