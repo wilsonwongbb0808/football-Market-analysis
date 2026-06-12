@@ -1546,6 +1546,11 @@
       localStorage.setItem(SCORE_PREDICTION_KEY, JSON.stringify(rows.slice(0, 6)));
     }
 
+    function parsePhaseStart(phase = "") {
+      const match = String(phase || "").match(/^(\d+)/);
+      return match ? Number(match[1]) : 0;
+    }
+
     function matchLedgerKey() {
       return currentMatchKey || matchKeyFromValues();
     }
@@ -1615,6 +1620,13 @@
           phase,
           homeScore,
           awayScore,
+          matchPhase: $("matchPhase")?.value || "pre",
+          ah: val("ah1"),
+          hw: val("hw1"),
+          aw: val("aw1"),
+          goalLine: val("goalLine1"),
+          over: val("over1"),
+          under: val("under1"),
           scoreText
         });
       });
@@ -2275,6 +2287,35 @@
       return "";
     }
 
+    function lastAdviceSnapshot(items = []) {
+      const sorted = [...items].sort((a, b) => Number(b.updatedAt || 0) - Number(a.updatedAt || 0));
+      return sorted.find(item => Number.isFinite(item.homeScore) && Number.isFinite(item.awayScore)) || sorted[0] || null;
+    }
+
+    function shouldAddConservativeNode(previousItems) {
+      if (!previousItems.length) return { allow: true, reason: "本场还没有保守计划建议。" };
+      const last = lastAdviceSnapshot(previousItems);
+      if (!last) return { allow: true, reason: "没有可比较的上一节点。" };
+      const homeScore = val("homeScore");
+      const awayScore = val("awayScore");
+      const scoreChanged = Number(last.homeScore) !== homeScore || Number(last.awayScore) !== awayScore;
+      const phaseAdvanced = parsePhaseStart($("matchPhase")?.value || "pre") > parsePhaseStart(last.matchPhase || "");
+      const ahMove = Number.isFinite(last.ah) ? Math.abs(val("ah1") - last.ah) : 0;
+      const goalLineMove = Number.isFinite(last.goalLine) ? Math.abs(val("goalLine1") - last.goalLine) : 0;
+      const waterMove = Math.max(
+        Number.isFinite(last.hw) ? Math.abs(val("hw1") - last.hw) : 0,
+        Number.isFinite(last.aw) ? Math.abs(val("aw1") - last.aw) : 0,
+        Number.isFinite(last.over) ? Math.abs(val("over1") - last.over) : 0,
+        Number.isFinite(last.under) ? Math.abs(val("under1") - last.under) : 0
+      );
+      if (scoreChanged) return { allow: true, reason: "比分发生变化，属于新的赛中节点。" };
+      if (ahMove >= 0.25) return { allow: true, reason: `亚盘较上次建议移动 ${ahMove.toFixed(2)}，达到追加判断阈值。` };
+      if (goalLineMove >= 0.25) return { allow: true, reason: `大小球较上次建议移动 ${goalLineMove.toFixed(2)}，达到追加判断阈值。` };
+      if (waterMove >= 0.12) return { allow: true, reason: `水位较上次建议最大变化 ${waterMove.toFixed(2)}，达到追加判断阈值。` };
+      if (phaseAdvanced) return { allow: false, reason: "只有比赛时间推进，比分、盘口线和水位都没有明显变化，中场或下半场重新填写不自动追加。" };
+      return { allow: false, reason: "距离上次建议没有出现明显新变盘，保守计划先延续旧建议并保留资金。" };
+    }
+
     function renderValueTable(e0, e1, p0, p1, ah0, ah1, hw0, hw1, aw0, aw1, goalLine0, goalLine1, over0, over1, under0, under1, homeScore, awayScore) {
       const effectiveAh1 = effectiveAsianLine(ah1, homeScore, awayScore);
       const effectiveGoalLine1 = effectiveGoalLine(goalLine1, homeScore, awayScore);
@@ -2599,10 +2640,12 @@
       const previousUsed = Math.min(stake, previousItems.reduce((sum, row) => sum + Number(row.amount || 0), 0));
       const currentNodeAlreadySaved = previousItems.some(item => item.nodeKey === currentNodeKey());
       const remainingStake = Math.max(0, stake - previousUsed);
-      const conservativeRows = currentNodeAlreadySaved || remainingStake <= 0 ? [] : buildAllocationRows(remainingStake, "conservative").map(row => ({
+      const addGate = shouldAddConservativeNode(previousItems);
+      const canAddConservative = addGate.allow && !currentNodeAlreadySaved && remainingStake > 0;
+      const conservativeRows = canAddConservative ? buildAllocationRows(remainingStake, "conservative").map(row => ({
         ...row,
         percent: stake > 0 ? row.amount / stake : 0
-      }));
+      })) : [];
       latestConservativeAdvice = conservativeRows;
       const standardUsed = standardRows.reduce((sum, row) => sum + row.amount, 0);
       const conservativeNewUsed = conservativeRows.reduce((sum, row) => sum + row.amount, 0);
@@ -2631,7 +2674,7 @@
         $("fullAllocationTable").innerHTML = waitRow + reserveRow(stake);
         $("reserveAllocationTable").innerHTML = previousItems.map(previousRowHtml).join("") + waitRow + reserveRow(stake - previousUsed);
         $("allocationNote").textContent = previousUsed > 0
-          ? `当前节点没有新增价值。保守计划此前已建议 ${money(previousUsed)}，本节点不追加，继续保留 ${money(stake - previousUsed)}。`
+          ? `当前节点没有新增价值。保守计划此前已建议 ${money(previousUsed)}，本节点不追加，继续保留 ${money(stake - previousUsed)}。${addGate.reason}`
           : "当前没有足够投注价值，本场计划金额可以完整保留。不是每一场都必须下注，空仓也是资金策略。";
         return;
       }
@@ -2639,9 +2682,9 @@
       $("fullAllocationTable").innerHTML = standardRows.map(rowHtml).join("") + reserveRow(stake - standardUsed);
       $("reserveAllocationTable").innerHTML =
         previousItems.map(previousRowHtml).join("") +
-        (conservativeRows.length ? conservativeRows.map(rowHtml).join("") : `<tr><td>本节点不追加</td><td>${money(0)}</td><td>0.0%</td><td>${currentNodeAlreadySaved ? "这个节点已经保存过建议，避免重复加仓。" : "剩余资金下没有新的高质量位置。"}</td></tr>`) +
+        (conservativeRows.length ? conservativeRows.map(rowHtml).join("") : `<tr><td>本节点不追加</td><td>${money(0)}</td><td>0.0%</td><td>${currentNodeAlreadySaved ? "这个节点已经保存过建议，避免重复加仓。" : addGate.reason || "剩余资金下没有新的高质量位置。"}</td></tr>`) +
         reserveRow(stake - conservativeTotalUsed);
-      $("allocationNote").textContent = `计划金额 ${money(stake)}。标准计划当前建议使用 ${money(standardUsed)}，保留 ${money(stake - standardUsed)}；保守计划此前已建议 ${money(previousUsed)}，本节点新增 ${money(conservativeNewUsed)}，继续保留 ${money(stake - conservativeTotalUsed)}。同向高度相关的选项会自动择优，避免主胜和主队让球重复重仓。`;
+      $("allocationNote").textContent = `计划金额 ${money(stake)}。标准计划当前建议使用 ${money(standardUsed)}，保留 ${money(stake - standardUsed)}；保守计划此前已建议 ${money(previousUsed)}，本节点新增 ${money(conservativeNewUsed)}，继续保留 ${money(stake - conservativeTotalUsed)}。${conservativeNewUsed > 0 ? addGate.reason : "未出现明显新变盘时不会因为中场重新填写而追加。"}同向高度相关的选项会自动择优，避免主胜和主队让球重复重仓。`;
     }
 
     function scorePredictionForCurrentMatch() {
