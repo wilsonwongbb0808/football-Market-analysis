@@ -134,6 +134,20 @@
 
     button:hover { filter: brightness(.97); }
 
+    .mini-action {
+      min-height: 30px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      margin: 2px 0;
+    }
+
+    .mini-action.danger {
+      border-color: rgba(196, 56, 75, .35);
+      color: var(--red);
+      background: #fff4f6;
+    }
+
     .layout {
       display: grid;
       grid-template-columns: 1fr;
@@ -1310,7 +1324,7 @@
             <div class="pro-body">
               <div class="table-wrap">
                 <table>
-                  <thead><tr><th>节点</th><th>比分</th><th>欧赔</th><th>亚盘</th><th>大小球</th><th>阶段解读</th></tr></thead>
+                  <thead><tr><th>节点</th><th>比分</th><th>欧赔</th><th>亚盘</th><th>大小球</th><th>阶段解读</th><th>操作</th></tr></thead>
                   <tbody id="historyTable"></tbody>
                 </table>
               </div>
@@ -1331,7 +1345,7 @@
     const DAILY_CACHE_KEY = "footballOddsDailyMatches";
     const ALLOCATION_LEDGER_KEY = "footballOddsAllocationLedger";
     const SCORE_PREDICTION_KEY = "footballOddsFirstScorePredictions";
-    const SCORE_PREDICTION_VERSION = "score-euro-first-v2";
+    const SCORE_PREDICTION_VERSION = "score-live-floor-v3";
     const MATCH_HISTORY_KEY = "footballOddsMatchHistories";
     const DAY_MS = 24 * 60 * 60 * 1000;
     const DEFAULT_CASE = {
@@ -1514,7 +1528,31 @@
 
     function currentLedgerEntry() {
       const key = matchLedgerKey();
-      return key ? allocationLedger().find(row => row.matchKey === key) : null;
+      if (!key) return null;
+      const rows = allocationLedger();
+      const entry = rows.find(row => row.matchKey === key);
+      if (!entry) return null;
+      const homeScore = val("homeScore");
+      const awayScore = val("awayScore");
+      const validItems = entry.items.filter(item => ledgerItemFitsCurrentScore(item, homeScore, awayScore));
+      if (validItems.length !== entry.items.length) {
+        entry.items = validItems;
+        entry.updatedAt = Date.now();
+        saveAllocationLedger(rows);
+      }
+      return { ...entry, items: validItems };
+    }
+
+    function ledgerItemFitsCurrentScore(item, homeScore, awayScore) {
+      if (!Number.isFinite(homeScore) || !Number.isFinite(awayScore)) return true;
+      let score = null;
+      if (Number.isFinite(item?.homeScore) && Number.isFinite(item?.awayScore)) {
+        score = { home: item.homeScore, away: item.awayScore };
+      } else {
+        score = parseScoreValue(item?.scoreText);
+      }
+      if (!score) return true;
+      return score.home <= homeScore && score.away <= awayScore;
     }
 
     function saveConservativeAdvice() {
@@ -1528,7 +1566,9 @@
         rows.unshift(entry);
       }
       if (entry.items.some(item => item.nodeKey === nodeKey)) return;
-      const scoreText = `${$("homeScore")?.value || 0}-${$("awayScore")?.value || 0}`;
+      const homeScore = val("homeScore");
+      const awayScore = val("awayScore");
+      const scoreText = `${homeScore || 0}-${awayScore || 0}`;
       const phase = phaseLabel($("matchPhase")?.value || "pre");
       latestConservativeAdvice.forEach(row => {
         entry.items.push({
@@ -1538,6 +1578,8 @@
           score: row.score,
           updatedAt: Date.now(),
           phase,
+          homeScore,
+          awayScore,
           scoreText
         });
       });
@@ -1785,7 +1827,8 @@
       const items = [];
       const totalGoals = homeScore + awayScore;
       const scoreText = `${homeScore}-${awayScore}`;
-      const hMove = ah1 - ah0;
+      const effectiveAh1 = effectiveAsianLine(ah1, homeScore, awayScore);
+      const hMove = effectiveAh1 - ah0;
       const homeProbMove = p1.home - p0.home;
       const drawProbMove = p1.draw - p0.draw;
       const awayProbMove = p1.away - p0.away;
@@ -1803,16 +1846,16 @@
         if (homeOddMove >= -0.03 || homeProbMove < 0.008) items.push("主队已经领先，但主胜赔率没有明显下压，说明博彩公司对主队守胜信心并不强，可能在防平或防客队反扑。");
         if (drawProbMove > 0.01 || e1[1] < e0[1] - 0.08) items.push("主队领先后平局概率反而被抬高或平赔被压低，要重点警惕领先方被追平的风险。");
         if (awayProbMove > 0.008 || awayOddMove < -0.08) items.push("客胜方向没有被明显放弃，甚至被压低，说明机构仍在防范客队逆转或至少持续施压。");
-        if (hMove < -0.01) items.push(`亚盘从 ${handicapText(ah0)} 到 ${handicapText(ah1)}，盘口向主队加深，属于领先方继续被抬高的信号。`);
-        else if (hMove > 0.01) items.push(`亚盘从 ${handicapText(ah0)} 到 ${handicapText(ah1)}，盘口反而退向客队方向，这和主队领先并不完全匹配，说明机构对主队打穿或继续占优态度谨慎。`);
+        if (hMove < -0.01) items.push(`线上亚盘显示 ${handicapText(ah1)}，按当前比分折算约 ${handicapText(effectiveAh1)}；相对初盘 ${handicapText(ah0)} 是向主队加深，属于领先方继续被抬高的信号。`);
+        else if (hMove > 0.01) items.push(`线上亚盘显示 ${handicapText(ah1)}，按当前比分折算约 ${handicapText(effectiveAh1)}；相对初盘 ${handicapText(ah0)} 反而退向客队方向，说明机构对主队打穿或继续占优态度谨慎。`);
       } else if (awayScore > homeScore) {
         items.push(`当前比分是 ${scoreText}，客队领先。进球后正常情况下客胜赔率应下降、客胜隐含概率应上升；如果亚盘也向客队方向移动，说明博彩公司认可客队领先后的局面。`);
         if (awayOddMove < -0.08 && awayProbMove > 0.015) items.push(`客胜赔率下降 ${Math.abs(awayOddMove).toFixed(2)}，客胜去水概率上升 ${pp(awayProbMove)}，这是对客队领先优势的直接确认。`);
         if (awayOddMove >= -0.03 || awayProbMove < 0.008) items.push("客队已经领先，但客胜赔率没有明显下压，说明博彩公司没有充分确认客队能守住胜势，需要防主队反扑。");
         if (drawProbMove > 0.01 || e1[1] < e0[1] - 0.08) items.push("客队领先后平局被加强，通常代表机构对主队扳平有防范。");
         if (homeProbMove > 0.008 || homeOddMove < -0.08) items.push("主胜方向没有被明显放弃，甚至被压低，说明机构仍在给主队反扑或逆转留空间。");
-        if (hMove > 0.01) items.push(`亚盘从 ${handicapText(ah0)} 到 ${handicapText(ah1)}，盘口向客队方向移动，符合客队领先后的再定价。`);
-        else if (hMove < -0.01) items.push(`亚盘从 ${handicapText(ah0)} 到 ${handicapText(ah1)}，盘口反而向主队加深，这和客队领先相冲突，往往说明机构仍更看重主队基本面或主队反扑能力。`);
+        if (hMove > 0.01) items.push(`线上亚盘显示 ${handicapText(ah1)}，按当前比分折算约 ${handicapText(effectiveAh1)}；相对初盘 ${handicapText(ah0)} 是向客队方向移动，符合客队领先后的再定价。`);
+        else if (hMove < -0.01) items.push(`线上亚盘显示 ${handicapText(ah1)}，按当前比分折算约 ${handicapText(effectiveAh1)}；相对初盘 ${handicapText(ah0)} 反而向主队加深，说明机构仍更看重主队基本面或主队反扑能力。`);
       } else {
         items.push(`当前比分是 ${scoreText}，双方打平。打平后的赔率变化主要看博彩公司是否重新回到赛前强弱定位，还是开始增强平局防范。`);
         if (drawProbMove > 0.012 || drawOddMove < -0.08) items.push("平局概率上升或平赔下降，说明机构对比赛继续僵持的防范增强。");
@@ -1832,11 +1875,12 @@
     function renderTotalGoalAnalysis(homeScore, awayScore, line0, line1, over0, over1, under0, under1) {
       const items = [];
       const goals = homeScore + awayScore;
-      const lineMove = line1 - line0;
+      const effectiveLine1 = effectiveGoalLine(line1, homeScore, awayScore);
+      const lineMove = effectiveLine1 - line0;
       const overMove = over1 - over0;
       const underMove = under1 - under0;
 
-      items.push(`当前总进球为 ${goals}，大小球初盘 ${line0}，即时盘 ${line1}。`);
+      items.push(`当前总进球为 ${goals}，线上即时大小球 ${line1}；把已进球折算进去，等效全场进球预期约 ${fmtLine(effectiveLine1)}，再和初盘 ${line0} 比较。`);
       if (lineMove > 0.01) items.push(`大小球盘口上调 ${lineMove.toFixed(2)}，说明市场对后续进球预期增强，或进球/节奏已经迫使机构提高总进球门槛。`);
       else if (lineMove < -0.01) items.push(`大小球盘口下调 ${Math.abs(lineMove).toFixed(2)}，说明机构对后续进球预期下降，比赛节奏或进攻效率可能不如初始预期。`);
       else items.push("大小球盘口没有变化，重点看大球和小球水位谁被压低。");
@@ -2113,11 +2157,57 @@
       return tags.slice(0, 5);
     }
 
+    function directionVsScore(row, homeScore, awayScore) {
+      if (!row) return null;
+      const group = allocationGroup(row);
+      if (homeScore > awayScore && group === "away") return {
+        type: "opposite",
+        text: "当前主队领先，但推荐偏向客队方向。这通常不是看客队一定逆转，而是欧赔/水位仍在防客队反扑，或主队领先后的赢盘回报不够划算。"
+      };
+      if (awayScore > homeScore && group === "home") return {
+        type: "opposite",
+        text: "当前客队领先，但推荐偏向主队方向。这通常不是无视比分，而是盘口仍在防主队反扑，或客队领先后的价格已经被压得不划算。"
+      };
+      if (homeScore === awayScore && (group === "home" || group === "away")) return {
+        type: "neutral",
+        text: "当前比分打平，推荐胜负方向时要看赔率是否真的给出突破僵局的价值；如果平局概率同步升高，不能重仓硬追一边。"
+      };
+      return null;
+    }
+
+    function previousAdviceStatus(previousItems, best) {
+      if (!previousItems.length) return "";
+      const bestGroup = best ? allocationGroup(best) : "";
+      const rowsByGroup = new Map();
+      latestValueRows.forEach(row => {
+        const group = allocationGroup(row);
+        const existing = rowsByGroup.get(group);
+        if (!existing || row.score > existing.score) rowsByGroup.set(group, row);
+      });
+      const kept = [];
+      const weak = [];
+      previousItems.forEach(item => {
+        const group = allocationGroup(item);
+        const current = rowsByGroup.get(group);
+        if (current && current.score >= 0) kept.push(item.name);
+        else weak.push(item.name);
+      });
+      if (bestGroup && previousItems.some(item => allocationGroup(item) !== bestGroup)) {
+        const stillOk = kept.length ? `之前的 ${kept.slice(0, 2).join("、")} 仍有一定可行性，先按持仓/已下注处理，不要因为新节点反向就立刻追反。` : "";
+        const fading = weak.length ? `之前的 ${weak.slice(0, 2).join("、")} 当前信号已经转弱，后续不建议继续加仓。` : "";
+        return [stillOk, fading].filter(Boolean).join(" ");
+      }
+      if (kept.length) return `之前保存的 ${kept.slice(0, 2).join("、")} 仍能被当前盘口部分支持，保留资金计划会优先延续，不会重复追单。`;
+      return "";
+    }
+
     function renderValueTable(e0, e1, p0, p1, ah0, ah1, hw0, hw1, aw0, aw1, goalLine0, goalLine1, over0, over1, under0, under1, homeScore, awayScore) {
-      const hMove = ah1 - ah0;
+      const effectiveAh1 = effectiveAsianLine(ah1, homeScore, awayScore);
+      const effectiveGoalLine1 = effectiveGoalLine(goalLine1, homeScore, awayScore);
+      const hMove = effectiveAh1 - ah0;
       const homeWaterMove = hw1 - hw0;
       const awayWaterMove = aw1 - aw0;
-      const lineMove = goalLine1 - goalLine0;
+      const lineMove = effectiveGoalLine1 - goalLine0;
       const overMove = over1 - over0;
       const underMove = under1 - under0;
       const phase = $("matchPhase")?.value || "pre";
@@ -2219,10 +2309,11 @@
         scoreContext(homeScore, awayScore, "home") +
         homeDrawCoverage.score;
       pushRow(`亚盘主队 ${handicapText(ah1)}`, homeAsianValue, [
+        `比分折算后盘口强度约 ${handicapText(effectiveAh1)}`,
         homeDrawCoverage.text,
         homeEuroCore.text,
         homeAsianConfirm.text,
-        hMove < -0.01 ? `盘口加深 ${Math.abs(hMove).toFixed(2)}` : hMove > 0.01 ? `盘口退让 ${hMove.toFixed(2)}` : "盘口未变",
+        hMove < -0.01 ? `折算后加深 ${Math.abs(hMove).toFixed(2)}` : hMove > 0.01 ? `折算后退让 ${hMove.toFixed(2)}` : "折算后盘口未变",
         homeWaterMove < -0.05 ? "主队降水，防范增强" : homeWaterMove > 0.05 ? "主队升水，赢盘阻力增加" : "主队水位稳定"
       ], returnShapeValue("water", hw1), homeAsianEdge);
 
@@ -2234,10 +2325,11 @@
         scoreContext(homeScore, awayScore, "away") +
         awayDrawCoverage.score;
       pushRow(`亚盘客队 ${handicapText(-ah1)}`, awayAsianValue, [
+        `比分折算后主队盘口约 ${handicapText(effectiveAh1)}`,
         awayDrawCoverage.text,
         awayEuroCore.text,
         awayAsianConfirm.text,
-        hMove > 0.01 ? `盘口向客队方向移动 ${hMove.toFixed(2)}` : hMove < -0.01 ? "盘口向主队加深，客队受压" : "盘口未变",
+        hMove > 0.01 ? `折算后向客队方向移动 ${hMove.toFixed(2)}` : hMove < -0.01 ? "折算后向主队加深，客队受压" : "折算后盘口未变",
         awayWaterMove < -0.05 ? "客队降水，防范增强" : awayWaterMove > 0.05 ? "客队升水，打出阻力增加" : "客队水位稳定"
       ], returnShapeValue("water", aw1), awayAsianEdge);
 
@@ -2247,7 +2339,8 @@
         (homeScore + awayScore > 0 ? 1 : 0) +
         phaseBias(phase, homeScore, awayScore, "over").score;
       pushRow(`大球 ${goalLine1}`, overValue, [
-        lineMove > 0.01 ? `大小球升盘到 ${goalLine1}` : lineMove < -0.01 ? `大小球降盘到 ${goalLine1}` : "大小球盘口未变",
+        `折算全场预期约 ${fmtLine(effectiveGoalLine1)}`,
+        lineMove > 0.01 ? `折算后大小球升盘到 ${fmtLine(effectiveGoalLine1)}` : lineMove < -0.01 ? `折算后大小球降盘到 ${fmtLine(effectiveGoalLine1)}` : "折算后大小球盘口未变",
         overMove < -0.05 ? "大球降水，继续出球被防范" : overMove > 0.05 ? "大球升水，继续出球信心减弱" : "大球水位稳定",
         phaseBias(phase, homeScore, awayScore, "over").text,
         homeScore + awayScore > 0 ? `当前已有 ${homeScore + awayScore} 球` : "未进球阶段"
@@ -2267,7 +2360,8 @@
         (homeScore + awayScore > 0 && lineMove > 0.01 ? 1 : 0) +
         phaseBias(phase, homeScore, awayScore, "under").score;
       pushRow(`小球 ${goalLine1}`, underValue, [
-        lineMove < -0.01 ? `大小球降盘到 ${goalLine1}` : lineMove > 0.01 ? "大小球升盘，小球承压" : "大小球盘口未变",
+        `折算全场预期约 ${fmtLine(effectiveGoalLine1)}`,
+        lineMove < -0.01 ? `折算后大小球降盘到 ${fmtLine(effectiveGoalLine1)}` : lineMove > 0.01 ? "折算后大小球升盘，小球承压" : "折算后大小球盘口未变",
         underMove < -0.05 ? "小球降水，进球停滞被防范" : underMove > 0.05 ? "小球升水，小球信心减弱" : "小球水位稳定",
         phaseBias(phase, homeScore, awayScore, "under").text,
         homeScore + awayScore > 0 ? `当前已有 ${homeScore + awayScore} 球` : "未进球阶段"
@@ -2492,6 +2586,19 @@
       return result === "home" ? "主队小胜" : result === "away" ? "客队不败" : "平局防范";
     }
 
+    function parseScoreValue(value) {
+      const match = String(value || "").match(/^(\d+)-(\d+)$/);
+      return match ? { home: Number(match[1]), away: Number(match[2]) } : null;
+    }
+
+    function predictionFitsCurrentScore(prediction, homeScore, awayScore) {
+      if (!prediction || !Array.isArray(prediction.scores) || !prediction.scores.length) return false;
+      return prediction.scores.every(row => {
+        const score = parseScoreValue(row.value);
+        return score && score.home >= homeScore && score.away >= awayScore;
+      });
+    }
+
     function pickResultLean(p1, support) {
       if (p1.away > p1.home + 0.035) return "away";
       if (p1.home > p1.away + 0.035) return "home";
@@ -2518,8 +2625,10 @@
     function buildFirstScorePrediction(p1, support) {
       const homeScore = val("homeScore");
       const awayScore = val("awayScore");
-      const goalLine = val("goalLine1");
-      const ah = val("ah1");
+      const rawGoalLine = val("goalLine1");
+      const rawAh = val("ah1");
+      const goalLine = effectiveGoalLine(rawGoalLine, homeScore, awayScore);
+      const ah = effectiveAsianLine(rawAh, homeScore, awayScore);
       if (![homeScore, awayScore, goalLine, ah].every(Number.isFinite)) return null;
 
       const lean = pickResultLean(p1, support);
@@ -2567,7 +2676,11 @@
 
     function ensureFirstScorePrediction(p1, support) {
       const key = matchLedgerKey();
-      if (!key || scorePredictionForCurrentMatch()) return;
+      if (!key) return;
+      const existing = scorePredictionForCurrentMatch();
+      const homeScore = val("homeScore");
+      const awayScore = val("awayScore");
+      if (existing && predictionFitsCurrentScore(existing, homeScore, awayScore)) return;
       const prediction = buildFirstScorePrediction(p1, support);
       if (!prediction) return;
       const rows = scorePredictionCache().filter(row => row.matchKey !== key);
@@ -2586,10 +2699,12 @@
 
     function scorePicksMarkup() {
       const prediction = scorePredictionForCurrentMatch();
-      if (!prediction) {
+      const homeScore = val("homeScore");
+      const awayScore = val("awayScore");
+      if (!prediction || !predictionFitsCurrentScore(prediction, homeScore, awayScore)) {
         return `
-          <div class="score-pick"><span>推荐比分</span><b>待生成</b></div>
-          <div class="score-pick"><span>推荐比分</span><b>待生成</b></div>
+          <div class="score-pick"><span>推荐比分</span><b>待分析</b></div>
+          <div class="score-pick"><span>推荐比分</span><b>待分析</b></div>
         `;
       }
       return prediction.scores.map(row => `
@@ -2623,6 +2738,10 @@
       const likelyPrice = euroPriceValue(likely.odd);
       const riskTags = buildRiskTags({ e1, p1, homeScore, awayScore, ...context });
       const best = topRows[0];
+      const ledgerEntry = currentLedgerEntry();
+      const previousItems = ledgerEntry?.items || [];
+      const directionNote = directionVsScore(best, homeScore, awayScore);
+      const previousNote = previousAdviceStatus(previousItems, best);
       const execution = !best ? "观望" : best.modelTier === "ultra" ? "超精选加权" : best.score >= 4 ? "重点观察" : "小注/等确认";
       const valueText = !best ? "暂无价值" : best.grade;
       const mainRisk = riskTags[0]?.[0] || "风险可控";
@@ -2644,7 +2763,7 @@
           : first.modelTier === "calibrated"
             ? "综合评分里使用了封存回测校准，但不会只按单一模型下注。"
             : "当前主要按盘口变化、赔率回报和比赛节点做综合判断。";
-        $("recommendationSubtitle").textContent = `${first.grade}。${modelNote} 这里推荐的是“值得下注的方向”，不是单纯胜率最高的方向；赔率太低的选项会被自动降权。${lowPriceNote}`;
+        $("recommendationSubtitle").textContent = `${first.grade}。${modelNote} 这里推荐的是“值得下注的方向”，不是单纯胜率最高的方向；赔率太低的选项会被自动降权。${lowPriceNote} ${directionNote?.text || ""} ${previousNote}`.trim();
       }
       $("decisionStrip").innerHTML = [
         ["执行建议", execution],
@@ -2655,6 +2774,7 @@
       $("riskTags").innerHTML = riskTags.map(([text, type]) => `<span class="tag ${type}">${text}</span>`).join("");
       $("recommendationTags").innerHTML = [
         hasRouteFiltered ? `<span class="tag warn">已过滤路径冲突</span>` : "",
+        directionNote?.type === "opposite" ? `<span class="tag warn">推荐与比分相反：需看反扑价值</span>` : "",
         ...topRows.map(row => `<span class="tag ${row.cls}">${row.name}：${row.grade}</span>`),
         ...avoidRows.map(row => `<span class="tag bad">谨慎：${row.name}</span>`)
       ].filter(Boolean).join("") || `<span class="tag warn">暂无强信号</span>`;
@@ -2686,10 +2806,16 @@
       const e1 = [val("eh1"), val("ed1"), val("ea1")];
       const p0 = implied(...e0);
       const p1 = implied(...e1);
+      const homeScore = val("homeScore");
+      const awayScore = val("awayScore");
+      const ah0 = val("ah0");
+      const ah1 = val("ah1");
+      const goalLine0 = val("goalLine0");
+      const goalLine1 = val("goalLine1");
       return {
         time: new Date().toLocaleTimeString("zh-CN", { hour12: false }),
-        homeScore: val("homeScore"),
-        awayScore: val("awayScore"),
+        homeScore,
+        awayScore,
         matchPhase: $("matchPhase")?.value || "pre",
         baseEh: e0[0],
         baseEd: e0[1],
@@ -2703,16 +2829,20 @@
         ph: p1.home,
         pd: p1.draw,
         pa: p1.away,
-        baseAh: val("ah0"),
+        baseAh: ah0,
+        baseEffectiveAh: ah0,
         baseHw: val("hw0"),
         baseAw: val("aw0"),
-        ah: val("ah1"),
+        ah: ah1,
+        effectiveAh: effectiveAsianLine(ah1, homeScore, awayScore),
         hw: val("hw1"),
         aw: val("aw1"),
-        baseGoalLine: val("goalLine0"),
+        baseGoalLine: goalLine0,
+        baseEffectiveGoalLine: goalLine0,
         baseOver: val("over0"),
         baseUnder: val("under0"),
-        goalLine: val("goalLine1"),
+        goalLine: goalLine1,
+        effectiveGoalLine: effectiveGoalLine(goalLine1, homeScore, awayScore),
         over: val("over1"),
         under: val("under1")
       };
@@ -2768,13 +2898,17 @@
 
     function nodeBase(row) {
       return {
+        homeScore: 0,
+        awayScore: 0,
         ph: Number.isFinite(row.basePh) ? row.basePh : row.ph,
         pd: Number.isFinite(row.basePd) ? row.basePd : row.pd,
         pa: Number.isFinite(row.basePa) ? row.basePa : row.pa,
         ah: Number.isFinite(row.baseAh) ? row.baseAh : row.ah,
+        effectiveAh: Number.isFinite(row.baseEffectiveAh) ? row.baseEffectiveAh : (Number.isFinite(row.baseAh) ? row.baseAh : row.ah),
         hw: Number.isFinite(row.baseHw) ? row.baseHw : row.hw,
         aw: Number.isFinite(row.baseAw) ? row.baseAw : row.aw,
         goalLine: Number.isFinite(row.baseGoalLine) ? row.baseGoalLine : row.goalLine,
+        effectiveGoalLine: Number.isFinite(row.baseEffectiveGoalLine) ? row.baseEffectiveGoalLine : (Number.isFinite(row.baseGoalLine) ? row.baseGoalLine : row.goalLine),
         over: Number.isFinite(row.baseOver) ? row.baseOver : row.over,
         under: Number.isFinite(row.baseUnder) ? row.baseUnder : row.under
       };
@@ -2789,8 +2923,12 @@
       const homeGoal = prev && cur.homeScore > prev.homeScore;
       const awayGoal = prev && cur.awayScore > prev.awayScore;
       const [mainSide, mainMove] = dominantMove(cur, base);
-      const ahMove = cur.ah - base.ah;
-      const goalLineMove = cur.goalLine - base.goalLine;
+      const baseEffectiveAh = Number.isFinite(base.effectiveAh) ? base.effectiveAh : effectiveAsianLine(base.ah, base.homeScore || 0, base.awayScore || 0);
+      const curEffectiveAh = Number.isFinite(cur.effectiveAh) ? cur.effectiveAh : effectiveAsianLine(cur.ah, cur.homeScore, cur.awayScore);
+      const baseEffectiveGoalLine = Number.isFinite(base.effectiveGoalLine) ? base.effectiveGoalLine : effectiveGoalLine(base.goalLine, base.homeScore || 0, base.awayScore || 0);
+      const curEffectiveGoalLine = Number.isFinite(cur.effectiveGoalLine) ? cur.effectiveGoalLine : effectiveGoalLine(cur.goalLine, cur.homeScore, cur.awayScore);
+      const ahMove = curEffectiveAh - baseEffectiveAh;
+      const goalLineMove = curEffectiveGoalLine - baseEffectiveGoalLine;
       const overMove = cur.over - base.over;
       const underMove = cur.under - base.under;
 
@@ -2804,6 +2942,9 @@
       }
 
       notes.push(`欧赔态度：相对${prev ? "上一节点" : "初盘"}，变化最明显的是${mainSide}，去水概率变化 ${pp(mainMove)}。当前概率为主胜 ${pct(cur.ph)}、平局 ${pct(cur.pd)}、客胜 ${pct(cur.pa)}。`);
+      if (goals > 0 || prev) {
+        notes.push(`线上盘口折算：当前亚盘显示 ${handicapText(cur.ah)}，在比分 ${score} 下折算约 ${handicapText(curEffectiveAh)}；当前大小球显示 ${fmtLine(cur.goalLine)}，把已进 ${goals} 球折进去约 ${fmtLine(curEffectiveGoalLine)}。`);
+      }
       if (cur.homeScore > cur.awayScore) {
         if (cur.ph - base.ph > 0.015 && ahMove < -0.01) notes.push("胜负判断：主队领先后，主胜概率上升且亚盘继续向主队加深，说明机构认可主队领先优势，并对主队守住或扩大比分有较强防范。");
         else if (cur.ph - base.ph < 0.01 || ahMove > 0.01) notes.push("胜负判断：主队虽然领先，但主胜概率或亚盘没有同步加强，说明机构对主队守胜并不充分信任，要防平局或客队反扑。");
@@ -2818,16 +2959,16 @@
         else if (cur.pa - cur.ph > 0.08) notes.push("胜负判断：虽然比分打平，但客胜概率明显高于主胜，机构仍偏向客队后续取得优势。");
       }
 
-      if (ahMove < -0.01) notes.push(`亚盘解读：盘口从 ${handicapText(base.ah)} 到 ${handicapText(cur.ah)}，向主队加深 ${Math.abs(ahMove).toFixed(2)}。如果同时主队水位升高，代表主队方向热但打穿未必轻松；如果主队水位下降，则主队方向防范更实。`);
-      else if (ahMove > 0.01) notes.push(`亚盘解读：盘口从 ${handicapText(base.ah)} 到 ${handicapText(cur.ah)}，向客队方向移动 ${ahMove.toFixed(2)}。这通常削弱主队方向，或增强客队不败/客队方向的保护。`);
+      if (ahMove < -0.01) notes.push(`亚盘解读：相对${prev ? "上一节点" : "初盘"}的等效盘口 ${handicapText(baseEffectiveAh)}，当前折算为 ${handicapText(curEffectiveAh)}，向主队加深 ${Math.abs(ahMove).toFixed(2)}。如果同时主队水位升高，代表主队方向热但打穿未必轻松；如果主队水位下降，则主队方向防范更实。`);
+      else if (ahMove > 0.01) notes.push(`亚盘解读：相对${prev ? "上一节点" : "初盘"}的等效盘口 ${handicapText(baseEffectiveAh)}，当前折算为 ${handicapText(curEffectiveAh)}，向客队方向移动 ${ahMove.toFixed(2)}。这通常削弱主队方向，或增强客队不败/客队方向的保护。`);
       else {
         if (cur.hw < base.hw - 0.05) notes.push("亚盘解读：盘口不变但主队降水，说明主队方向被压低，机构在同盘口下加强主队防范。");
         else if (cur.aw < base.aw - 0.05) notes.push("亚盘解读：盘口不变但客队降水，说明客队方向被压低，机构在同盘口下加强客队防范。");
         else notes.push("亚盘解读：盘口和两边水位变化都不大，说明机构暂时没有通过亚盘明显改变强弱定位。");
       }
 
-      if (goalLineMove > 0.01) notes.push(`大小球解读：总进球盘口从 ${base.goalLine} 升到 ${cur.goalLine}，说明进球预期被抬高。当前已进 ${goals} 球，若大球还降水，代表继续出球防范更强。`);
-      else if (goalLineMove < -0.01) notes.push(`大小球解读：总进球盘口从 ${base.goalLine} 降到 ${cur.goalLine}，说明机构下调后续进球预期，比赛可能被判断为节奏下降或进攻效率不足。`);
+      if (goalLineMove > 0.01) notes.push(`大小球解读：等效总进球预期从 ${fmtLine(baseEffectiveGoalLine)} 升到 ${fmtLine(curEffectiveGoalLine)}，说明进球预期被抬高。当前已进 ${goals} 球，若大球还降水，代表继续出球防范更强。`);
+      else if (goalLineMove < -0.01) notes.push(`大小球解读：等效总进球预期从 ${fmtLine(baseEffectiveGoalLine)} 降到 ${fmtLine(curEffectiveGoalLine)}，说明机构下调后续进球预期，比赛可能被判断为节奏下降或进攻效率不足。`);
       else if (overMove < -0.05) notes.push("大小球解读：大小球盘口不变但大球降水，说明机构在当前门槛下防继续出球。");
       else if (underMove < -0.05) notes.push("大小球解读：大小球盘口不变但小球降水，说明机构防比赛降速或进球停滞。");
       else notes.push("大小球解读：总进球盘口与大小球水位变化有限，进球预期没有明显重新定价。");
@@ -2844,22 +2985,79 @@
       return detailedHistoryNotes(prev, cur).join(" ");
     }
 
+    function applySnapshotToInputs(row) {
+      const mapping = {
+        homeScore: row.homeScore,
+        awayScore: row.awayScore,
+        matchPhase: row.matchPhase,
+        eh0: row.baseEh,
+        ed0: row.baseEd,
+        ea0: row.baseEa,
+        eh1: row.eh,
+        ed1: row.ed,
+        ea1: row.ea,
+        ah0: row.baseAh,
+        hw0: row.baseHw,
+        aw0: row.baseAw,
+        ah1: row.ah,
+        hw1: row.hw,
+        aw1: row.aw,
+        goalLine0: row.baseGoalLine,
+        over0: row.baseOver,
+        under0: row.baseUnder,
+        goalLine1: row.goalLine,
+        over1: row.over,
+        under1: row.under
+      };
+      Object.entries(mapping).forEach(([id, value]) => {
+        if ($(id) && value !== undefined && value !== null && value !== "") $(id).value = value;
+      });
+      analyze();
+      ensureFirstScorePredictionFromInputs();
+      analyze();
+      setActiveView("input");
+    }
+
+    function restoreHistoryNode(index) {
+      const history = loadHistory();
+      const row = history[index];
+      if (!row) return;
+      applySnapshotToInputs(row);
+    }
+
+    function deleteHistoryNode(index) {
+      const history = loadHistory();
+      if (!history[index]) return;
+      history.splice(index, 1);
+      saveHistory(history);
+      allowSaveCurrentInputs = true;
+      saveCurrentInputs();
+      allowSaveCurrentInputs = false;
+      renderHistory();
+    }
+
     function renderHistory() {
       const history = loadHistory();
       if (!history.length) {
-        $("historyTable").innerHTML = `<tr><td colspan="6">暂无记录。更新即时盘口后点击“记录当前节点”。</td></tr>`;
+        $("historyTable").innerHTML = `<tr><td colspan="7">暂无记录。更新即时盘口后点击“记录当前节点”。</td></tr>`;
         return;
       }
       $("historyTable").innerHTML = history.map((row, index) => {
         const prev = index > 0 ? history[index - 1] : null;
         const notes = detailedHistoryNotes(prev, row);
+        const rowEffectiveAh = Number.isFinite(row.effectiveAh) ? row.effectiveAh : effectiveAsianLine(row.ah, row.homeScore, row.awayScore);
+        const rowEffectiveGoalLine = Number.isFinite(row.effectiveGoalLine) ? row.effectiveGoalLine : effectiveGoalLine(row.goalLine, row.homeScore, row.awayScore);
         return `<tr>
           <td>${index + 1}<br><span class="flat">${row.time}</span></td>
           <td>${row.homeScore}-${row.awayScore}<br><span class="flat">${phaseLabel(row.matchPhase)}</span></td>
           <td>${fmt(row.eh)} / ${fmt(row.ed)} / ${fmt(row.ea)}</td>
-          <td>${handicapText(row.ah)}<br><span class="flat">${fmt(row.hw)} / ${fmt(row.aw)}</span></td>
-          <td>${row.goalLine}<br><span class="flat">大 ${fmt(row.over)} / 小 ${fmt(row.under)}</span></td>
+          <td>${handicapText(row.ah)}<br><span class="flat">折算 ${handicapText(rowEffectiveAh)}；${fmt(row.hw)} / ${fmt(row.aw)}</span></td>
+          <td>${fmtLine(row.goalLine)}<br><span class="flat">折算 ${fmtLine(rowEffectiveGoalLine)}；大 ${fmt(row.over)} / 小 ${fmt(row.under)}</span></td>
           <td><ul class="analysis-list">${notes.map(note => `<li>${note}</li>`).join("")}</ul></td>
+          <td>
+            <button class="mini-action" type="button" data-history-action="restore" data-index="${index}">回填</button>
+            <button class="mini-action danger" type="button" data-history-action="delete" data-index="${index}">删除</button>
+          </td>
         </tr>`;
       }).join("");
     }
@@ -2916,6 +3114,28 @@
       return `${n > 0 ? "+" : ""}${n}`;
     }
 
+    function fmtLine(v) {
+      const n = Number(v);
+      if (!Number.isFinite(n)) return "-";
+      return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, "");
+    }
+
+    function scoreDiff(homeScore, awayScore) {
+      return (Number(homeScore) || 0) - (Number(awayScore) || 0);
+    }
+
+    function effectiveAsianLine(line, homeScore, awayScore) {
+      const n = Number(line);
+      if (!Number.isFinite(n)) return NaN;
+      return n - scoreDiff(homeScore, awayScore);
+    }
+
+    function effectiveGoalLine(line, homeScore, awayScore) {
+      const n = Number(line);
+      if (!Number.isFinite(n)) return NaN;
+      return n + (Number(homeScore) || 0) + (Number(awayScore) || 0);
+    }
+
     function movementWord(delta, inverse = false) {
       if (Math.abs(delta) < 0.005) return ["持平", "flat"];
       const up = delta > 0;
@@ -2939,7 +3159,7 @@
       return { side: arr[0][0], delta: arr[0][1], changes: { dh, dd, da } };
     }
 
-    function buildBookmakerSummary({ e0, e1, p0, p1, structure0, structure1, support, ah0, ah1, hMove, homeWaterMove, awayWaterMove, consistentHome, consistentAway, inconsistent }) {
+    function buildBookmakerSummary({ e0, e1, p0, p1, structure0, structure1, support, ah0, ah1, effectiveAh1, homeScore, awayScore, hMove, homeWaterMove, awayWaterMove, consistentHome, consistentAway, inconsistent }) {
       const notes = [];
       const moves = [
         ["主胜", e0[0], e1[0], p0.home, p1.home],
@@ -2974,7 +3194,7 @@
       } else if (inconsistent) {
         notes.push("欧赔和亚盘现在有分歧，这种盘不能只按欧赔降赔追方向。更合理的做法是降低单边胜负权重，优先找能覆盖风险的盘口，比如受让、平局保护或大小球。");
       } else {
-        notes.push(`亚盘初盘为${handicapText(ah0)}，即时为${handicapText(ah1)}，${Math.abs(hMove) < 0.01 ? "盘口本身没有明显移动，主要看两边水位谁被压低。" : hMove < 0 ? "盘口向主队加深，主队定位被抬高。" : "盘口向客队方向移动，主队定位被削弱。"}`);
+        notes.push(`亚盘初盘为${handicapText(ah0)}，线上即时为${handicapText(ah1)}；按当前比分 ${homeScore}-${awayScore} 折算约${handicapText(effectiveAh1)}。${Math.abs(hMove) < 0.01 ? "折算后盘口没有明显移动，主要看两边水位谁被压低。" : hMove < 0 ? "折算后盘口向主队加深，主队定位被抬高。" : "折算后盘口向客队方向移动，主队定位被削弱。"}`);
       }
       if (lowPrices.length) {
         notes.push(`赔率回报上，${lowPrices.map(row => `${row.name} ${fmt(row.liveOdd)}`).join("、")}属于低回报区间。机构可能确实看好，但对下注来说不一定划算，需要转看让球盘、大小球或等待更好的价格。`);
@@ -3018,14 +3238,17 @@
       const support = supportSideByEuro(p0, p1);
       const structure0 = euroStructure(e0, p0);
       const structure1 = euroStructure(e1, p1);
-      const hMove = ah1 - ah0;
+      const effectiveAh1 = effectiveAsianLine(ah1, homeScore, awayScore);
+      const effectiveGoalLine1 = effectiveGoalLine(goalLine1, homeScore, awayScore);
+      const hMove = effectiveAh1 - ah0;
+      const goalLineMove = effectiveGoalLine1 - goalLine0;
       const homeWaterMove = hw1 - hw0;
       const awayWaterMove = aw1 - aw0;
 
       let asianMove;
       if (Math.abs(hMove) < 0.01) asianMove = "盘口未变，主要看水位表达";
-      else if (hMove < 0) asianMove = "盘口向主队加深，主队定位被抬高";
-      else asianMove = "盘口向客队方向移动，主队定位被削弱";
+      else if (hMove < 0) asianMove = "折算后盘口向主队加深，主队定位被抬高";
+      else asianMove = "折算后盘口向客队方向移动，主队定位被削弱";
 
       const tags = [];
       tags.push({ text: structure1, type: "info" });
@@ -3064,6 +3287,9 @@
         support,
         ah0,
         ah1,
+        effectiveAh1,
+        homeScore,
+        awayScore,
         hMove,
         homeWaterMove,
         awayWaterMove,
@@ -3079,7 +3305,7 @@
         hMove,
         homeWaterMove,
         awayWaterMove,
-        goalLineMove: goalLine1 - goalLine0,
+        goalLineMove,
         overMove: over1 - over0,
         underMove: under1 - under0,
         consistentHome,
@@ -3114,7 +3340,7 @@
       $("euroTable").innerHTML = euroRows.join("");
 
       const asianItems = [];
-      asianItems.push(`初盘亚盘定位：${handicapText(ah0)}，表达为「${handicapLean(ah0)}」。即时盘为${handicapText(ah1)}，表达为「${handicapLean(ah1)}」。`);
+      asianItems.push(`初盘亚盘定位：${handicapText(ah0)}，表达为「${handicapLean(ah0)}」。线上即时盘为${handicapText(ah1)}；按当前比分 ${homeScore}-${awayScore} 折算，强度约为${handicapText(effectiveAh1)}，表达为「${handicapLean(effectiveAh1)}」。`);
       asianItems.push(`${asianMove}；主队水位从 ${fmt(hw0)} 到 ${fmt(hw1)}，客队水位从 ${fmt(aw0)} 到 ${fmt(aw1)}。`);
       if (Math.abs(hMove) < 0.01) {
         if (homeWaterMove < -0.04) asianItems.push("盘口不变但主队降水，通常表示主队方向受压或被更多防范。");
@@ -3140,13 +3366,16 @@
       const cautionValues = latestValueRows.filter(row => row.score < 0).slice(0, 2);
       const scoreText = `${homeScore}-${awayScore}`;
       const leader = homeScore > awayScore ? "主队领先" : awayScore > homeScore ? "客队领先" : homeScore + awayScore === 0 ? "未进球" : "双方打平";
-      const goalLineMove = goalLine1 - goalLine0;
+      const directionNote = directionVsScore(topValues[0], homeScore, awayScore);
+      const previousNote = previousAdviceStatus(currentLedgerEntry()?.items || [], topValues[0]);
       const overMove = over1 - over0;
       const underMove = under1 - under0;
 
       finalItems.push(`现在的比赛状态：${phaseLabel($("matchPhase")?.value || "pre")}，比分 ${scoreText}，${leader}。盘口目前最明显在防的是${support.side}，也就是市场觉得这个方向不能完全放掉。`);
       if (topValues.length) finalItems.push(`可以优先看的方向：${topValues.map(row => `${row.name}（${row.grade}）`).join("、")}。它们不是“必中”，只是目前几组数据相对更配合。`);
       else finalItems.push("当前不适合硬选方向：胜负、让球和大小球没有形成足够统一的信号，先等下一次变盘会更舒服。");
+      if (directionNote?.type === "opposite") finalItems.push(`反向提醒：${directionNote.text} 所以这里不是让你盲目追落后一方，而是要看这个方向是否仍有赔率回报、盘口折算和水位支持。`);
+      if (previousNote) finalItems.push(`旧建议处理：${previousNote}`);
       const lowPriceSides = [
         ["主胜", e1[0], p1.home],
         ["平局", e1[1], p1.draw],
@@ -3157,8 +3386,8 @@
       else if (consistentAway) finalItems.push("胜负倾向：欧赔和亚盘都在往客队这边靠，客队不败或客队方向更值得重视。");
       else if (support.side === "平局") finalItems.push("胜负倾向：市场没有明显推向某一边，平局风险比较突出，胜负方向不要下得太满。");
       else finalItems.push("胜负倾向：目前还不是单边强势盘，最好结合场面、阵容、红黄牌和比赛时间再确认。");
-      finalItems.push(`让球怎么看：亚盘从 ${handicapText(ah0)} 变到 ${handicapText(ah1)}，${asianMove}。简单说，盘口往哪边走，机构就在重新评估哪边更占便宜。`);
-      finalItems.push(`大小球怎么看：总进球线从 ${goalLine0} 到 ${goalLine1}，${goalLineMove > 0.01 ? "市场觉得后面更可能继续有球" : goalLineMove < -0.01 ? "市场觉得后面进球空间变小" : "市场对进球数暂时没有大改判断"}。`);
+      finalItems.push(`让球怎么看：线上亚盘是 ${handicapText(ah1)}，但按比分 ${scoreText} 折算约 ${handicapText(effectiveAh1)}；相对初盘 ${handicapText(ah0)}，${asianMove}。`);
+      finalItems.push(`大小球怎么看：线上总进球线是 ${fmtLine(goalLine1)}，把已进球折进去约 ${fmtLine(effectiveGoalLine1)}；相对初盘 ${fmtLine(goalLine0)}，${goalLineMove > 0.01 ? "市场对全场进球预期提高" : goalLineMove < -0.01 ? "市场对全场进球预期降低" : "市场对全场进球预期暂时没有大改判断"}。`);
       if (cautionValues.length) finalItems.push(`需要少碰的方向：${cautionValues.map(row => `${row.name}（${row.grade}）`).join("、")}。这些方向和盘口表达不太顺，容易看着诱人但实际风险更高。`);
       finalItems.push($("allocationNote").textContent || "资金策略：先填写计划金额，再看打满计划和保留计划。");
       if (p1.draw > 0.285 && Math.abs(p1.home - p1.away) < 0.11) finalItems.push("额外提醒：平局位置偏敏感，即使你看好一边，也别忽略被分流到平局的风险。");
@@ -3246,6 +3475,14 @@
     $("startAnalysisBtn").addEventListener("click", startAnalysis);
     $("recordBtn").addEventListener("click", recordSnapshot);
     $("clearHistoryBtn").addEventListener("click", clearHistory);
+    $("historyTable").addEventListener("click", event => {
+      const button = event.target.closest("[data-history-action]");
+      if (!button) return;
+      const index = Number(button.dataset.index);
+      if (!Number.isInteger(index)) return;
+      if (button.dataset.historyAction === "restore") restoreHistoryNode(index);
+      if (button.dataset.historyAction === "delete") deleteHistoryNode(index);
+    });
     document.querySelectorAll(".view-tab").forEach(button => {
       button.addEventListener("click", () => setActiveView(button.dataset.view));
     });
