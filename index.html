@@ -847,6 +847,10 @@
       pointer-events: none;
     }
 
+    .public-edition .license-panel {
+      display: none;
+    }
+
     @media (max-width: 900px) {
       .app { padding: 16px; }
       header { align-items: stretch; flex-direction: column; }
@@ -1383,7 +1387,9 @@
             <div class="pro-body">
               <div class="metrics" id="metrics"></div>
               <div class="probability-details" id="probabilityDetails"></div>
+              <div class="probability-details" id="shinDetails"></div>
               <div class="probability-details" id="bayesianDetails"></div>
+              <div class="probability-details" id="poissonDetails"></div>
               <p class="note">概率为去除返还率影响后的归一化隐含概率，只代表赔率所表达的市场定价，不等于真实赛果概率。</p>
             </div>
           </details>
@@ -1453,6 +1459,7 @@
     const SCORE_PREDICTION_KEY = "footballOddsFirstScorePredictions";
     const SCORE_PREDICTION_VERSION = "score-live-floor-v3";
     const MATCH_HISTORY_KEY = "footballOddsMatchHistories";
+    const LICENSE_REQUIRED = /(^|\.)worldcup-predictor-aia\.pages\.dev$/i.test(window.location.hostname);
     const DAY_MS = 24 * 60 * 60 * 1000;
     const DEFAULT_CASE = {
       eh0: 3.0, ed0: 2.9, ea0: 2.4,
@@ -1547,6 +1554,7 @@
     }
 
     function isAuthorized() {
+      if (!LICENSE_REQUIRED) return true;
       return Boolean(licenseSession?.code && licenseSession?.token);
     }
 
@@ -1565,7 +1573,14 @@
     }
 
     function applyAuthGate() {
-      document.body.classList.toggle("auth-locked", !isAuthorized());
+      document.body.classList.toggle("public-edition", !LICENSE_REQUIRED);
+      document.body.classList.toggle("auth-locked", LICENSE_REQUIRED && !isAuthorized());
+      if (!LICENSE_REQUIRED) {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+        authStatusText("公开版：无需激活码。");
+        return;
+      }
       if ($("licenseCode") && licenseSession?.code) $("licenseCode").value = licenseSession.code;
       $("licenseLogoutBtn").disabled = !isAuthorized();
       const brief = licenseSession
@@ -1575,6 +1590,10 @@
     }
 
     function restoreLicenseSession() {
+      if (!LICENSE_REQUIRED) {
+        saveLicenseSession(null);
+        return;
+      }
       try {
         const saved = JSON.parse(localStorage.getItem(LICENSE_SESSION_KEY) || "null");
         if (saved?.code && saved?.token) licenseSession = saved;
@@ -1585,6 +1604,7 @@
     }
 
     async function loginLicense() {
+      if (!LICENSE_REQUIRED) return;
       const code = String($("licenseCode").value || "").trim().toUpperCase();
       if (!code) {
         authStatusText("请先输入激活码。", true);
@@ -1617,6 +1637,7 @@
     }
 
     async function logoutLicense() {
+      if (!LICENSE_REQUIRED) return;
       const session = licenseSession;
       saveLicenseSession(null);
       clearInterval(heartbeatTimer);
@@ -1635,6 +1656,7 @@
     }
 
     async function heartbeatLicense() {
+      if (!LICENSE_REQUIRED) return;
       if (!isAuthorized()) return;
       try {
         const data = await apiPost("/api/license/heartbeat", authPayload());
@@ -1655,12 +1677,14 @@
     }
 
     function startHeartbeat() {
+      if (!LICENSE_REQUIRED) return;
       clearInterval(heartbeatTimer);
       heartbeatTimer = setInterval(heartbeatLicense, 180000);
       heartbeatLicense();
     }
 
     async function consumeQueryQuota() {
+      if (!LICENSE_REQUIRED) return true;
       if (!isAuthorized()) {
         authStatusText("请先登录激活码，再查看完整预测。", true);
         return false;
@@ -2096,6 +2120,74 @@
       };
     }
 
+    function shinImplied(home, draw, away) {
+      const odds = [home, draw, away];
+      if (odds.some(odd => !Number.isFinite(odd) || odd <= 1)) return implied(home, draw, away);
+      const inv = odds.map(odd => 1 / odd);
+      const totalRaw = inv.reduce((a, b) => a + b, 0);
+      const normalized = inv.map(x => x / totalRaw);
+      if (totalRaw <= 1.0001) {
+        return {
+          home: normalized[0],
+          draw: normalized[1],
+          away: normalized[2],
+          fairHome: 1 / normalized[0],
+          fairDraw: 1 / normalized[1],
+          fairAway: 1 / normalized[2],
+          z: 0,
+          totalRaw,
+          margin: totalRaw - 1
+        };
+      }
+
+      const sumAt = z => inv.reduce((sum, q) => {
+        const numerator = Math.sqrt(z * z + (4 * (1 - z) * q * q) / totalRaw) - z;
+        return sum + numerator / (2 * (1 - z));
+      }, 0);
+
+      let lo = 0;
+      let hi = 0.999999;
+      for (let i = 0; i < 80; i += 1) {
+        const mid = (lo + hi) / 2;
+        if (sumAt(mid) > 1) lo = mid;
+        else hi = mid;
+      }
+      const z = (lo + hi) / 2;
+      let probs = inv.map(q => {
+        const numerator = Math.sqrt(z * z + (4 * (1 - z) * q * q) / totalRaw) - z;
+        return numerator / (2 * (1 - z));
+      });
+      const sum = probs.reduce((a, b) => a + b, 0);
+      probs = probs.map(p => p / sum);
+      return {
+        home: probs[0],
+        draw: probs[1],
+        away: probs[2],
+        fairHome: 1 / probs[0],
+        fairDraw: 1 / probs[1],
+        fairAway: 1 / probs[2],
+        z,
+        totalRaw,
+        margin: totalRaw - 1
+      };
+    }
+
+    function blendProbabilities(a, b, bWeight = 0.45) {
+      const w = clamp(bWeight, 0, 1);
+      const home = a.home * (1 - w) + b.home * w;
+      const draw = a.draw * (1 - w) + b.draw * w;
+      const away = a.away * (1 - w) + b.away * w;
+      const total = home + draw + away;
+      return {
+        home: home / total,
+        draw: draw / total,
+        away: away / total,
+        fairHome: total / home,
+        fairDraw: total / draw,
+        fairAway: total / away
+      };
+    }
+
     function clamp(n, min, max) {
       return Math.max(min, Math.min(max, n));
     }
@@ -2190,6 +2282,50 @@
       };
     }
 
+    function calibratePosterior(baseProb, posterior, context = {}) {
+      const arr = [posterior.home, posterior.draw, posterior.away];
+      const sorted = arr.slice().sort((a, b) => b - a);
+      const confidenceGap = sorted[0] - sorted[1];
+      const maxProb = sorted[0];
+      let shrink =
+        maxProb >= 0.68 ? 0.34 :
+        maxProb >= 0.58 ? 0.26 :
+        confidenceGap < 0.035 ? 0.24 :
+        confidenceGap < 0.06 ? 0.18 : 0.12;
+
+      const phaseStart = parsePhaseStart(context.phase || "pre");
+      if (phaseStart >= 76 && Math.abs((context.homeScore || 0) - (context.awayScore || 0)) >= 1) {
+        shrink = Math.max(0.08, shrink - 0.08);
+      }
+      if (context.inconsistent) shrink += 0.08;
+      if (posterior.draw >= 0.30 && Math.abs(posterior.home - posterior.away) < 0.10) shrink += 0.05;
+      shrink = clamp(shrink, 0.06, 0.42);
+
+      const home = posterior.home * (1 - shrink) + baseProb.home * shrink;
+      const draw = posterior.draw * (1 - shrink) + baseProb.draw * shrink;
+      const away = posterior.away * (1 - shrink) + baseProb.away * shrink;
+      const total = home + draw + away;
+      const calibrated = {
+        home: home / total,
+        draw: draw / total,
+        away: away / total
+      };
+      calibrated.fairHome = 1 / calibrated.home;
+      calibrated.fairDraw = 1 / calibrated.draw;
+      calibrated.fairAway = 1 / calibrated.away;
+      calibrated.rawHome = posterior.home;
+      calibrated.rawDraw = posterior.draw;
+      calibrated.rawAway = posterior.away;
+      calibrated.shrink = shrink;
+      calibrated.notes = [
+        ...(posterior.notes || []),
+        shrink >= 0.26
+          ? `概率校准：当前后验较集中或信号分歧，按 ${(shrink * 100).toFixed(0)}% 向市场底座回收，避免过度自信。`
+          : `概率校准：当前信号较稳定，仅按 ${(shrink * 100).toFixed(0)}% 做轻度回收。`
+      ];
+      return calibrated;
+    }
+
     function pp(n) {
       if (!Number.isFinite(n)) return "-";
       const sign = n > 0 ? "+" : "";
@@ -2257,17 +2393,17 @@
       `;
     }
 
-    function renderBayesianDetails(p1, bayes) {
+    function renderBayesianDetails(baseProb, bayes) {
       if (!$("bayesianDetails")) return;
       const rows = [
-        ["主胜", p1.home, bayes.home, bayes.fairHome],
-        ["平局", p1.draw, bayes.draw, bayes.fairDraw],
-        ["客胜", p1.away, bayes.away, bayes.fairAway]
+        ["主胜", baseProb.home, bayes.home, bayes.fairHome],
+        ["平局", baseProb.draw, bayes.draw, bayes.fairDraw],
+        ["客胜", baseProb.away, bayes.away, bayes.fairAway]
       ];
       const biggest = rows.slice().sort((a, b) => Math.abs(b[2] - b[1]) - Math.abs(a[2] - a[1]))[0];
       const explanation = [
-        "贝叶斯层不是替代欧赔，而是在欧赔去水概率上继续加入亚盘、水位、比分和时间这些证据。",
-        `${biggest[0]}修正最明显：市场去水概率 ${pct(biggest[1])}，贝叶斯后验 ${pct(biggest[2])}，变化 ${pp(biggest[2] - biggest[1])}。`,
+        "贝叶斯层不是替代欧赔，而是在普通去水与 Shin 修正的混合底座上，继续加入亚盘、水位、比分和时间这些证据。",
+        `${biggest[0]}修正最明显：概率底座 ${pct(biggest[1])}，贝叶斯后验 ${pct(biggest[2])}，变化 ${pp(biggest[2] - biggest[1])}。`,
         ...(bayes.notes.length ? bayes.notes.slice(0, 3) : ["当前证据没有明显改变市场原始概率，推荐会更尊重欧赔本身。"])
       ];
       $("bayesianDetails").innerHTML = `
@@ -2277,12 +2413,89 @@
             ${rows.map(row => `
               <div class="mini-cell">
                 <b>${row[0]} ${pct(row[2])}</b>
-                <span>市场去水 ${pct(row[1])}</span>
+                <span>概率底座 ${pct(row[1])}</span>
                 <span>后验公平赔率 ${fmt(row[3])}</span>
               </div>
             `).join("")}
           </div>
           <ul class="analysis-list">${explanation.map(x => `<li>${x}</li>`).join("")}</ul>
+        </div>
+      `;
+    }
+
+    function renderShinDetails(p1, shin1, blended1) {
+      if (!$("shinDetails")) return;
+      const rows = [
+        ["主胜", p1.home, shin1.home, blended1.home],
+        ["平局", p1.draw, shin1.draw, blended1.draw],
+        ["客胜", p1.away, shin1.away, blended1.away]
+      ];
+      const biggest = rows.slice().sort((a, b) => Math.abs(b[2] - b[1]) - Math.abs(a[2] - a[1]))[0];
+      const zText = shin1.z >= 0.08 ? "偏高，说明赔率结构里可能有更明显的热度或信息偏差"
+        : shin1.z >= 0.03 ? "中等，说明 Shin 修正有参考价值"
+          : "较低，说明普通去水和 Shin 修正差异不大";
+      $("shinDetails").innerHTML = `
+        <div class="detail-block">
+          <h3>Shin 概率修正</h3>
+          <div class="mini-grid">
+            ${rows.map(row => `
+              <div class="mini-cell">
+                <b>${row[0]} ${pct(row[2])}</b>
+                <span>普通去水 ${pct(row[1])}</span>
+                <span>混合底座 ${pct(row[3])}</span>
+              </div>
+            `).join("")}
+            <div class="mini-cell">
+              <b>Shin z ${fmt(shin1.z)}</b>
+              <span>${zText}</span>
+              <span>用于修正欧赔水钱分布</span>
+            </div>
+          </div>
+          <ul class="analysis-list">
+            <li>Shin 修正会处理欧赔里热门、冷门和平局的水钱不均，不再默认三项平均加水。</li>
+            <li>${biggest[0]}修正最明显：普通去水 ${pct(biggest[1])}，Shin 修正 ${pct(biggest[2])}，变化 ${pp(biggest[2] - biggest[1])}。</li>
+            <li>工具会把普通去水和 Shin 概率混合作为贝叶斯底座，避免单一算法过度影响推荐。</li>
+          </ul>
+        </div>
+      `;
+    }
+
+    function renderPoissonDetails(poisson, markov = null) {
+      if (!$("poissonDetails") || !poisson) return;
+      const modelName = poisson.dcAdjusted ? "Dixon-Coles 低比分修正" : "Poisson 进球分布";
+      $("poissonDetails").innerHTML = `
+        <div class="detail-block">
+          <h3>${modelName}</h3>
+          <div class="mini-grid">
+            <div class="mini-cell">
+              <b>全场均值 ${fmt(poisson.expectedTotal)}</b>
+              <span>剩余进球 ${fmt(poisson.remainingTotal)}</span>
+              <span>主队 λ ${fmt(poisson.lambdaHome)} / 客队 λ ${fmt(poisson.lambdaAway)}</span>
+            </div>
+            <div class="mini-cell">
+              <b>大球 ${pct(poisson.over)}</b>
+              <span>小球 ${pct(poisson.under)}</span>
+              <span>由大小球盘口和水位修正</span>
+            </div>
+            <div class="mini-cell">
+              <b>胜 ${pct(poisson.home)}</b>
+              <span>平 ${pct(poisson.draw)} / 负 ${pct(poisson.away)}</span>
+              <span>由后验强弱和让球定位分配</span>
+            </div>
+            ${markov ? `
+              <div class="mini-cell">
+                <b>${markov.nextWindow}</b>
+                <span>不进球 ${pct(markov.noGoal)}</span>
+                <span>主队下一球 ${pct(markov.nextHome)} / 客队下一球 ${pct(markov.nextAway)}</span>
+              </div>
+            ` : ""}
+          </div>
+          <ul class="analysis-list">
+            <li>${poisson.dcAdjusted ? "Dixon-Coles 会修正 0-0、1-0、0-1、1-1 这类低比分相关性，比普通 Poisson 更贴近足球低比分特征。" : "Poisson 层用来检查比分路径和大小球是否合理，不单独决定下注方向。"}</li>
+            <li>最可能比分：${poisson.topScores.slice(0, 5).map(row => `${row.value}（${pct(row.prob)}）`).join("、")}。</li>
+            ${markov ? `<li>Markov 赛中状态：${markov.story}</li>` : ""}
+            <li>如果进球模型与盘口推荐方向一致，推荐会小幅加分；如果明显相反，会降低权重。</li>
+          </ul>
         </div>
       `;
     }
@@ -2386,6 +2599,51 @@
       if (odd <= 1.85) return { score: -1, tooLow: false, text: `即时赔率 ${fmt(odd)} 回报一般，下注价值需要盘口继续配合。` };
       if (odd >= 5) return { score: -1, tooLow: false, text: `即时赔率 ${fmt(odd)} 回报高，但打出难度也高，不宜只因为赔率高就追。` };
       return { score: 0, tooLow: false, text: `即时赔率 ${fmt(odd)} 回报区间尚可，重点看盘口信号是否一致。` };
+    }
+
+    function rowWinsOutcome(row, h, a) {
+      const group = allocationGroup(row);
+      const line = rowLine(row);
+      if (group === "home") {
+        if (row.name.includes("亚盘主队") && Number.isFinite(line)) return h + line > a;
+        return h > a;
+      }
+      if (group === "away") {
+        if (row.name.includes("亚盘客队") && Number.isFinite(line)) return a + line > h;
+        return a > h;
+      }
+      if (group === "draw") return h === a;
+      if (group === "over" && Number.isFinite(line)) return h + a > line;
+      if (group === "under" && Number.isFinite(line)) return h + a < line;
+      return false;
+    }
+
+    function outcomeWeight(h, a, homeScore, awayScore) {
+      const addGoals = Math.max(0, h - homeScore) + Math.max(0, a - awayScore);
+      const total = h + a;
+      return Math.pow(0.62, addGoals) * Math.pow(0.92, total);
+    }
+
+    function routeOverlap(a, b) {
+      const homeScore = val("homeScore");
+      const awayScore = val("awayScore");
+      const maxHome = Math.max(homeScore + 5, 5);
+      const maxAway = Math.max(awayScore + 5, 5);
+      let aw = 0;
+      let bw = 0;
+      let both = 0;
+      for (let h = homeScore; h <= maxHome; h += 1) {
+        for (let s = awayScore; s <= maxAway; s += 1) {
+          const weight = outcomeWeight(h, s, homeScore, awayScore);
+          const aWin = rowWinsOutcome(a, h, s);
+          const bWin = rowWinsOutcome(b, h, s);
+          if (aWin) aw += weight;
+          if (bWin) bw += weight;
+          if (aWin && bWin) both += weight;
+        }
+      }
+      const base = Math.min(aw, bw);
+      return base > 0 ? both / base : 0;
     }
 
 
@@ -2539,6 +2797,271 @@
       if (price <= 1.05) return { score: 1, text: "水位处在比较均衡的位置，回报和风险更匹配。" };
       if (price <= 1.25) return { score: 0, text: "水位偏高，回报更好，但打出阻力也更大。" };
       return { score: -1, text: "水位过高，不能只因为赢得多就追。" };
+    }
+
+    function halfKellyValue(prob, netOdds) {
+      if (!Number.isFinite(prob) || !Number.isFinite(netOdds) || netOdds <= 0) {
+        return { fraction: 0, edge: 0, multiplier: 1, text: "" };
+      }
+      const p = clamp(prob, 0.01, 0.99);
+      const edge = p * (netOdds + 1) - 1;
+      const fullKelly = (p * netOdds - (1 - p)) / netOdds;
+      const fraction = Math.max(0, fullKelly * 0.5);
+      const multiplier =
+        edge >= 0.25 ? 1.28 :
+        edge >= 0.16 ? 1.18 :
+        edge >= 0.08 ? 1.10 :
+        edge >= 0.02 ? 1.04 :
+        edge <= -0.10 ? 0.72 :
+        edge <= -0.04 ? 0.86 : 1;
+      const text = edge > 0
+        ? `半凯利显示正期望，理论半凯利约 ${(fraction * 100).toFixed(1)}%，资金权重上调。`
+        : `半凯利没有给出正期望，资金权重下调，避免只看方向不看回报。`;
+      return { fraction, edge, multiplier, text };
+    }
+
+    function asianKellyProb(side, line, bayes) {
+      const win = side === "home" ? bayes.home : bayes.away;
+      const draw = bayes.draw;
+      const n = Number(line);
+      if (!Number.isFinite(n)) return win;
+      if (n >= 0.5) return clamp(win + draw, 0.01, 0.99);
+      if (n >= 0.25) return clamp(win + draw * 0.5, 0.01, 0.99);
+      if (n >= 0) return clamp(win + draw * 0.25, 0.01, 0.99);
+      if (n >= -0.25) return clamp(win - draw * 0.25, 0.01, 0.99);
+      return clamp(win, 0.01, 0.99);
+    }
+
+    function totalMarketBase(overWater, underWater) {
+      const overRaw = 1 / (1 + overWater);
+      const underRaw = 1 / (1 + underWater);
+      const sum = overRaw + underRaw;
+      return { over: overRaw / sum, under: underRaw / sum };
+    }
+
+    function totalKellyProb(side, overWater, underWater, lineMove, overMove, underMove, phase, homeScore, awayScore) {
+      const base = totalMarketBase(overWater, underWater);
+      const phaseStart = parsePhaseStart(phase);
+      const goals = homeScore + awayScore;
+      let over = base.over;
+      over += clamp(lineMove * 0.10, -0.10, 0.10);
+      over += overMove < -0.05 ? 0.055 : overMove > 0.05 ? -0.045 : 0;
+      over += underMove < -0.05 ? -0.04 : underMove > 0.05 ? 0.035 : 0;
+      if (phaseStart >= 76 && goals <= 1) over -= 0.08;
+      if (phaseStart >= 61 && goals === 0) over -= 0.06;
+      over = clamp(over, 0.05, 0.95);
+      return side === "over" ? over : 1 - over;
+    }
+
+    function poissonPmf(lambda, k) {
+      if (!Number.isFinite(lambda) || lambda <= 0) return k === 0 ? 1 : 0;
+      let p = Math.exp(-lambda);
+      for (let i = 1; i <= k; i += 1) p *= lambda / i;
+      return p;
+    }
+
+    function phaseProgressRatio(phase) {
+      const start = parsePhaseStart(phase || "pre");
+      if (start <= 0) return 0;
+      if (start >= 76) return 0.86;
+      if (start >= 61) return 0.68;
+      if (start >= 46) return 0.52;
+      if (start >= 31) return 0.36;
+      if (start >= 16) return 0.18;
+      return 0.08;
+    }
+
+    function buildPoissonModel({ bayes, goalLine1, over1, under1, homeScore, awayScore, ah1, phase }) {
+      const progress = phaseProgressRatio(phase);
+      const currentGoals = homeScore + awayScore;
+      const marketTotal = effectiveGoalLine(goalLine1, homeScore, awayScore);
+      const totalBase = totalMarketBase(over1, under1);
+      let expectedTotal = Number.isFinite(marketTotal) ? marketTotal : Math.max(2.2, currentGoals + 1.2);
+      expectedTotal += (totalBase.over - totalBase.under) * 0.35;
+      expectedTotal = Math.max(currentGoals + 0.15, expectedTotal);
+      const remainingTotal = Math.max(0.08, expectedTotal - currentGoals);
+
+      const strength = clamp((bayes.home - bayes.away) * 1.35 + (-Number(ah1 || 0)) * 0.10, -0.65, 0.65);
+      let homeShare = clamp(0.5 + strength, 0.18, 0.82);
+      if (homeScore < awayScore && bayes.home >= bayes.away - 0.04) homeShare += 0.05;
+      if (awayScore < homeScore && bayes.away >= bayes.home - 0.04) homeShare -= 0.05;
+      homeShare = clamp(homeShare, 0.16, 0.84);
+      const lambdaHome = Math.max(0.03, remainingTotal * homeShare);
+      const lambdaAway = Math.max(0.03, remainingTotal * (1 - homeShare));
+      const maxAdd = Math.max(7, Math.ceil(remainingTotal + 5));
+      const scores = [];
+      let homeWin = 0;
+      let draw = 0;
+      let awayWin = 0;
+      let over = 0;
+      let under = 0;
+
+      for (let dh = 0; dh <= maxAdd; dh += 1) {
+        const ph = poissonPmf(lambdaHome, dh);
+        for (let da = 0; da <= maxAdd; da += 1) {
+          const pa = poissonPmf(lambdaAway, da);
+          const prob = ph * pa;
+          const h = homeScore + dh;
+          const a = awayScore + da;
+          const total = h + a;
+          if (h > a) homeWin += prob;
+          else if (a > h) awayWin += prob;
+          else draw += prob;
+          if (total > goalLine1) over += prob;
+          if (total < goalLine1) under += prob;
+          scores.push({ value: `${h}-${a}`, home: h, away: a, prob, result: h > a ? "home" : a > h ? "away" : "draw" });
+        }
+      }
+
+      const outcomeTotal = homeWin + draw + awayWin || 1;
+      const totalMarketSum = over + under || 1;
+      return {
+        lambdaHome,
+        lambdaAway,
+        expectedTotal,
+        remainingTotal,
+        progress,
+        home: homeWin / outcomeTotal,
+        draw: draw / outcomeTotal,
+        away: awayWin / outcomeTotal,
+        over: over / totalMarketSum,
+        under: under / totalMarketSum,
+        topScores: scores
+          .sort((a, b) => b.prob - a.prob)
+          .filter((row, index, arr) => arr.findIndex(item => item.value === row.value) === index)
+          .slice(0, 12)
+      };
+    }
+
+    function dixonColesTau(homeAdd, awayAdd, lambdaHome, lambdaAway, rho = -0.12) {
+      if (homeAdd === 0 && awayAdd === 0) return Math.max(0.2, 1 - lambdaHome * lambdaAway * rho);
+      if (homeAdd === 0 && awayAdd === 1) return Math.max(0.2, 1 + lambdaHome * rho);
+      if (homeAdd === 1 && awayAdd === 0) return Math.max(0.2, 1 + lambdaAway * rho);
+      if (homeAdd === 1 && awayAdd === 1) return Math.max(0.2, 1 - rho);
+      return 1;
+    }
+
+    function buildDixonColesModel(poisson, { homeScore, awayScore, goalLine1 }) {
+      if (!poisson) return null;
+      const rho = -0.12;
+      const maxAdd = Math.max(7, Math.ceil(poisson.remainingTotal + 5));
+      const scores = [];
+      let totalProb = 0;
+      let homeWin = 0;
+      let draw = 0;
+      let awayWin = 0;
+      let over = 0;
+      let under = 0;
+
+      for (let dh = 0; dh <= maxAdd; dh += 1) {
+        const ph = poissonPmf(poisson.lambdaHome, dh);
+        for (let da = 0; da <= maxAdd; da += 1) {
+          const pa = poissonPmf(poisson.lambdaAway, da);
+          const tau = dixonColesTau(dh, da, poisson.lambdaHome, poisson.lambdaAway, rho);
+          const prob = ph * pa * tau;
+          const h = homeScore + dh;
+          const a = awayScore + da;
+          totalProb += prob;
+          if (h > a) homeWin += prob;
+          else if (a > h) awayWin += prob;
+          else draw += prob;
+          if (h + a > goalLine1) over += prob;
+          if (h + a < goalLine1) under += prob;
+          scores.push({ value: `${h}-${a}`, home: h, away: a, prob, result: h > a ? "home" : a > h ? "away" : "draw" });
+        }
+      }
+
+      totalProb ||= 1;
+      const totalMarketSum = over + under || 1;
+      scores.forEach(row => { row.prob = row.prob / totalProb; });
+      return {
+        ...poisson,
+        rho,
+        home: homeWin / totalProb,
+        draw: draw / totalProb,
+        away: awayWin / totalProb,
+        over: over / totalMarketSum,
+        under: under / totalMarketSum,
+        topScores: scores
+          .sort((a, b) => b.prob - a.prob)
+          .filter((row, index, arr) => arr.findIndex(item => item.value === row.value) === index)
+          .slice(0, 12),
+        dcAdjusted: true
+      };
+    }
+
+    function buildMarkovModel(dcModel, { homeScore, awayScore, phase, bayes }) {
+      if (!dcModel) return null;
+      const phaseStart = parsePhaseStart(phase || "pre");
+      const nextWindow =
+        phaseStart >= 76 ? "终场前" :
+        phaseStart >= 61 ? "75分钟前" :
+        phaseStart >= 46 ? "60分钟前" :
+        phaseStart >= 31 ? "中场前" :
+        phaseStart >= 16 ? "30分钟前" : "前15分钟";
+      const homeNextGoal = dcModel.lambdaHome / (dcModel.lambdaHome + dcModel.lambdaAway || 1);
+      const awayNextGoal = 1 - homeNextGoal;
+      const noGoal = Math.exp(-(dcModel.lambdaHome + dcModel.lambdaAway) * 0.55);
+      const nextHome = (1 - noGoal) * homeNextGoal;
+      const nextAway = (1 - noGoal) * awayNextGoal;
+      const diff = homeScore - awayScore;
+      let story = "当前节点没有明显单一转移，重点等下一次进球或盘口同步确认。";
+      if (diff < 0 && bayes.draw >= 0.30 && nextHome >= nextAway * 0.9) {
+        story = "客队领先但平局权重仍高，Markov 路径更偏向主队下一球追回。";
+      } else if (diff > 0 && bayes.draw >= 0.30 && nextAway >= nextHome * 0.9) {
+        story = "主队领先但平局权重仍高，Markov 路径更偏向客队下一球追回。";
+      } else if (nextHome > nextAway + 0.12) {
+        story = "下一状态更偏向主队进球或继续压制。";
+      } else if (nextAway > nextHome + 0.12) {
+        story = "下一状态更偏向客队进球或继续压制。";
+      } else if (noGoal >= 0.52) {
+        story = "下一窗口不进球概率偏高，节奏更支持小球或平局保护。";
+      }
+      return {
+        nextWindow,
+        noGoal,
+        nextHome,
+        nextAway,
+        story
+      };
+    }
+
+    function poissonEdgeValue(side, poisson) {
+      if (!poisson) return { score: 0, text: "" };
+      const map = {
+        home: ["主胜", poisson.home],
+        draw: ["平局", poisson.draw],
+        away: ["客胜", poisson.away],
+        over: ["大球", poisson.over],
+        under: ["小球", poisson.under]
+      };
+      const row = map[side];
+      if (!row || !Number.isFinite(row[1])) return { score: 0, text: "" };
+      const prob = row[1];
+      if (prob >= 0.62) return { score: 0.9, text: `Poisson 进球模型支持${row[0]}，路径概率约 ${pct(prob)}。` };
+      if (prob >= 0.55) return { score: 0.45, text: `Poisson 进球模型略支持${row[0]}，路径概率约 ${pct(prob)}。` };
+      if (prob <= 0.34) return { score: -0.75, text: `Poisson 进球模型不支持${row[0]}，路径概率约 ${pct(prob)}。` };
+      return { score: 0, text: `Poisson 进球模型对${row[0]}没有明显单边支持。` };
+    }
+
+    function markovEdgeValue(side, markov, homeScore, awayScore) {
+      if (!markov) return { score: 0, text: "" };
+      let score = 0;
+      if (side === "under" && markov.noGoal >= 0.52) score += 0.45;
+      if (side === "over" && markov.noGoal <= 0.38) score += 0.35;
+      if (side === "home" && markov.nextHome > markov.nextAway + 0.12) score += 0.35;
+      if (side === "away" && markov.nextAway > markov.nextHome + 0.12) score += 0.35;
+      if (side === "draw" && homeScore !== awayScore) {
+        const trailingHome = homeScore < awayScore;
+        const comeback = trailingHome ? markov.nextHome : markov.nextAway;
+        const leading = trailingHome ? markov.nextAway : markov.nextHome;
+        if (comeback >= leading * 0.9) score += 0.4;
+      }
+      if (side === "draw" && homeScore === awayScore && markov.noGoal >= 0.48) score += 0.35;
+      return {
+        score,
+        text: `Markov 节点判断：${markov.story} 下一窗口不进球 ${pct(markov.noGoal)}，主队下一球 ${pct(markov.nextHome)}，客队下一球 ${pct(markov.nextAway)}。`
+      };
     }
 
     function marketPriorityValue(name) {
@@ -2724,7 +3247,7 @@
       return { allow: false, reason: "距离上次建议没有出现明显新变盘，保守计划先延续旧建议并保留资金。" };
     }
 
-    function renderValueTable(e0, e1, p0, p1, bayes, ah0, ah1, hw0, hw1, aw0, aw1, goalLine0, goalLine1, over0, over1, under0, under1, homeScore, awayScore) {
+    function renderValueTable(e0, e1, p0, p1, bayes, bayesBase, poisson, markov, ah0, ah1, hw0, hw1, aw0, aw1, goalLine0, goalLine1, over0, over1, under0, under1, homeScore, awayScore) {
       const effectiveAh1 = effectiveAsianLine(ah1, homeScore, awayScore);
       const effectiveGoalLine1 = effectiveGoalLine(goalLine1, homeScore, awayScore);
       const hMove = effectiveAh1 - ah0;
@@ -2736,11 +3259,11 @@
       const phase = $("matchPhase")?.value || "pre";
       const rows = [];
 
-      function pushRow(name, baseScore, reasons, edge = { score: 0, text: "" }, modelEdge = { score: 0, tier: "standard", text: "" }, bayesEdge = { score: 0, edge: 0, text: "" }) {
+      function pushRow(name, baseScore, reasons, edge = { score: 0, text: "" }, modelEdge = { score: 0, tier: "standard", text: "" }, bayesEdge = { score: 0, edge: 0, text: "" }, kelly = { fraction: 0, edge: 0, multiplier: 1, text: "" }) {
         const priority = marketPriorityValue(name);
         const score = baseScore + priority.score + (edge.score || 0) + (modelEdge.score || 0) + (bayesEdge.score || 0);
         const [grade, cls, action] = valueGrade(score);
-        const allReasons = [priority.text, edge.text, modelEdge.text, bayesEdge.text, ...reasons].filter(Boolean);
+        const allReasons = [priority.text, edge.text, modelEdge.text, bayesEdge.text, kelly.text, ...reasons].filter(Boolean);
         const modelTier = modelEdge.tier === "ultra" ? "ultra" : modelEdge.tier === "calibrated" ? "calibrated" : "standard";
         rows.push({
           name,
@@ -2748,6 +3271,9 @@
           baseScore,
           modelScore: modelEdge.score || 0,
           bayesEdge: bayesEdge.edge || 0,
+          kellyFraction: kelly.fraction || 0,
+          kellyEdge: kelly.edge || 0,
+          kellyMultiplier: kelly.multiplier || 1,
           marketRank: priority.rank,
           modelTier,
           grade,
@@ -2760,7 +3286,10 @@
       const homePrice = euroPriceValue(e1[0]);
       const homeMoveValue = euroMoveValue(e0[0], e1[0]);
       const homeEuroCore = euroCoreValue("home", e0, e1, p0, p1);
-      const homeBayesEdge = bayesianEdgeValue("home", p1, bayes);
+      const homeBayesEdge = bayesianEdgeValue("home", bayesBase, bayes);
+      const homePoisson = poissonEdgeValue("home", poisson);
+      const homeMarkov = markovEdgeValue("home", markov, homeScore, awayScore);
+      const homeKelly = halfKellyValue(bayes.home, e1[0] - 1);
       const homeAsianConfirm = asianConfirmValue("home", hMove, homeWaterMove, p1.home - p0.home);
       const homePhase = phaseBias(phase, homeScore, awayScore, "home");
       let homeScoreValue =
@@ -2769,21 +3298,27 @@
         scoreContext(homeScore, awayScore, "home") +
         homePrice.score +
         homePhase.score;
+      homeScoreValue += homePoisson.score + homeMarkov.score;
       if (homePrice.tooLow || e1[0] < 1.8) homeScoreValue = Math.min(homeScoreValue, 1);
       pushRow("竞彩主胜", homeScoreValue, [
         `主胜去水概率 ${pct(p1.home)}，较初盘 ${pp(p1.home - p0.home)}`,
         homeEuroCore.text,
         homeMoveValue.text,
+        homePoisson.text,
+        homeMarkov.text,
         homeAsianConfirm.text,
         homePrice.text,
         homePhase.text,
         homeScore > awayScore ? "比分上主队领先，方向与比分一致" : homeScore < awayScore ? "主队落后，主胜属于反扑方向" : ""
-      ], returnShapeValue("euro", e1[0]), { score: 0, tier: "standard", text: "" }, homeBayesEdge);
+      ], returnShapeValue("euro", e1[0]), { score: 0, tier: "standard", text: "" }, homeBayesEdge, homeKelly);
 
       const drawPrice = euroPriceValue(e1[1]);
       const drawMoveValue = euroMoveValue(e0[1], e1[1]);
       const drawEuroCore = euroCoreValue("draw", e0, e1, p0, p1);
-      const drawBayesEdge = bayesianEdgeValue("draw", p1, bayes);
+      const drawBayesEdge = bayesianEdgeValue("draw", bayesBase, bayes);
+      const drawPoisson = poissonEdgeValue("draw", poisson);
+      const drawMarkov = markovEdgeValue("draw", markov, homeScore, awayScore);
+      const drawKelly = halfKellyValue(bayes.draw, e1[1] - 1);
       const drawAsianConfirm = asianConfirmValue("draw", hMove, Math.min(homeWaterMove, awayWaterMove), p1.draw - p0.draw);
       const drawSealedEdge = sealedEdgeTrigger("draw-drop", { openOdd: e0[1], liveOdd: e1[1] });
       const drawPhase = phaseBias(phase, homeScore, awayScore, "draw");
@@ -2794,21 +3329,27 @@
         (Math.max(p1.home, p1.away) - p1.draw > 0.22 ? 1 : 0) +
         drawPrice.score +
         drawPhase.score;
+      drawScoreValue += drawPoisson.score + drawMarkov.score;
       if (drawPrice.tooLow || e1[1] < 1.8) drawScoreValue = Math.min(drawScoreValue, 1);
       pushRow("竞彩平局", drawScoreValue, [
         `平局去水概率 ${pct(p1.draw)}，较初盘 ${pp(p1.draw - p0.draw)}`,
         drawEuroCore.text,
         drawMoveValue.text,
+        drawPoisson.text,
+        drawMarkov.text,
         drawAsianConfirm.text,
         drawPrice.text,
         drawPhase.text,
         Math.abs(homeScore - awayScore) <= 1 ? "当前分差不大，平局仍有分流空间" : "当前分差较大，平局难度上升"
-      ], returnShapeValue("euro", e1[1]), drawSealedEdge, drawBayesEdge);
+      ], returnShapeValue("euro", e1[1]), drawSealedEdge, drawBayesEdge, drawKelly);
 
       const awayPrice = euroPriceValue(e1[2]);
       const awayMoveValue = euroMoveValue(e0[2], e1[2]);
       const awayEuroCore = euroCoreValue("away", e0, e1, p0, p1);
-      const awayBayesEdge = bayesianEdgeValue("away", p1, bayes);
+      const awayBayesEdge = bayesianEdgeValue("away", bayesBase, bayes);
+      const awayPoisson = poissonEdgeValue("away", poisson);
+      const awayMarkov = markovEdgeValue("away", markov, homeScore, awayScore);
+      const awayKelly = halfKellyValue(bayes.away, e1[2] - 1);
       const awayAsianConfirm = asianConfirmValue("away", hMove, awayWaterMove, p1.away - p0.away);
       const awayPhase = phaseBias(phase, homeScore, awayScore, "away");
       let awayScoreValue =
@@ -2817,61 +3358,79 @@
         scoreContext(homeScore, awayScore, "away") +
         awayPrice.score +
         awayPhase.score;
+      awayScoreValue += awayPoisson.score + awayMarkov.score;
       if (awayPrice.tooLow || e1[2] < 1.8) awayScoreValue = Math.min(awayScoreValue, 1);
       pushRow("竞彩客胜", awayScoreValue, [
         `客胜去水概率 ${pct(p1.away)}，较初盘 ${pp(p1.away - p0.away)}`,
         awayEuroCore.text,
         awayMoveValue.text,
+        awayPoisson.text,
+        awayMarkov.text,
         awayAsianConfirm.text,
         awayPrice.text,
         awayPhase.text,
         awayScore > homeScore ? "比分上客队领先，方向与比分一致" : awayScore < homeScore ? "客队落后，客胜属于反扑方向" : ""
-      ], returnShapeValue("euro", e1[2]), { score: 0, tier: "standard", text: "" }, awayBayesEdge);
+      ], returnShapeValue("euro", e1[2]), { score: 0, tier: "standard", text: "" }, awayBayesEdge, awayKelly);
 
       const homeAsianEdge = sealedEdgeTrigger("asian-balanced", { water: hw1, move: homeWaterMove });
       const homeDrawCoverage = drawPathValue("home", ah1, drawScoreValue, p1.draw, hw1, homeScore, awayScore);
+      const homeAsianKelly = halfKellyValue(asianKellyProb("home", ah1, bayes), hw1);
       const homeAsianValue =
         homeAsianConfirm.score +
         homeEuroCore.score * 0.55 +
+        homePoisson.score * 0.35 +
+        homeMarkov.score * 0.35 +
         scoreContext(homeScore, awayScore, "home") +
         homeDrawCoverage.score;
       pushRow(`亚盘主队 ${handicapText(ah1)}`, homeAsianValue, [
         `比分折算后盘口强度约 ${handicapText(effectiveAh1)}`,
         homeDrawCoverage.text,
+        homePoisson.text,
+        homeMarkov.text,
         homeEuroCore.text,
         homeAsianConfirm.text,
         hMove < -0.01 ? `折算后加深 ${Math.abs(hMove).toFixed(2)}` : hMove > 0.01 ? `折算后退让 ${hMove.toFixed(2)}` : "折算后盘口未变",
         homeWaterMove < -0.05 ? "主队降水，防范增强" : homeWaterMove > 0.05 ? "主队升水，赢盘阻力增加" : "主队水位稳定"
-      ], returnShapeValue("water", hw1), homeAsianEdge, { ...homeBayesEdge, score: homeBayesEdge.score * 0.35 });
+      ], returnShapeValue("water", hw1), homeAsianEdge, { ...homeBayesEdge, score: homeBayesEdge.score * 0.35 }, homeAsianKelly);
 
       const awayAsianEdge = sealedEdgeTrigger("asian-balanced", { water: aw1, move: awayWaterMove });
       const awayDrawCoverage = drawPathValue("away", -ah1, drawScoreValue, p1.draw, aw1, homeScore, awayScore);
+      const awayAsianKelly = halfKellyValue(asianKellyProb("away", -ah1, bayes), aw1);
       const awayAsianValue =
         awayAsianConfirm.score +
         awayEuroCore.score * 0.55 +
+        awayPoisson.score * 0.35 +
+        awayMarkov.score * 0.35 +
         scoreContext(homeScore, awayScore, "away") +
         awayDrawCoverage.score;
       pushRow(`亚盘客队 ${handicapText(-ah1)}`, awayAsianValue, [
         `比分折算后主队盘口约 ${handicapText(effectiveAh1)}`,
         awayDrawCoverage.text,
+        awayPoisson.text,
+        awayMarkov.text,
         awayEuroCore.text,
         awayAsianConfirm.text,
         hMove > 0.01 ? `折算后向客队方向移动 ${hMove.toFixed(2)}` : hMove < -0.01 ? "折算后向主队加深，客队受压" : "折算后盘口未变",
         awayWaterMove < -0.05 ? "客队降水，防范增强" : awayWaterMove > 0.05 ? "客队升水，打出阻力增加" : "客队水位稳定"
-      ], returnShapeValue("water", aw1), awayAsianEdge, { ...awayBayesEdge, score: awayBayesEdge.score * 0.35 });
+      ], returnShapeValue("water", aw1), awayAsianEdge, { ...awayBayesEdge, score: awayBayesEdge.score * 0.35 }, awayAsianKelly);
 
       const overValue =
         (lineMove > 0.01 ? 2 : lineMove < -0.01 ? -2 : 0) +
         (overMove < -0.05 ? 2 : overMove > 0.05 ? -1 : 0) +
         (homeScore + awayScore > 0 ? 1 : 0) +
-        phaseBias(phase, homeScore, awayScore, "over").score;
+        phaseBias(phase, homeScore, awayScore, "over").score +
+        poissonEdgeValue("over", poisson).score +
+        markovEdgeValue("over", markov, homeScore, awayScore).score;
+      const overKelly = halfKellyValue(totalKellyProb("over", over1, under1, lineMove, overMove, underMove, phase, homeScore, awayScore), over1);
       pushRow(`大球 ${goalLine1}`, overValue, [
         `折算全场预期约 ${fmtLine(effectiveGoalLine1)}`,
         lineMove > 0.01 ? `折算后大小球升盘到 ${fmtLine(effectiveGoalLine1)}` : lineMove < -0.01 ? `折算后大小球降盘到 ${fmtLine(effectiveGoalLine1)}` : "折算后大小球盘口未变",
+        poissonEdgeValue("over", poisson).text,
+        markovEdgeValue("over", markov, homeScore, awayScore).text,
         overMove < -0.05 ? "大球降水，继续出球被防范" : overMove > 0.05 ? "大球升水，继续出球信心减弱" : "大球水位稳定",
         phaseBias(phase, homeScore, awayScore, "over").text,
         homeScore + awayScore > 0 ? `当前已有 ${homeScore + awayScore} 球` : "未进球阶段"
-      ], returnShapeValue("water", over1));
+      ], returnShapeValue("water", over1), { score: 0, tier: "standard", text: "" }, { score: 0, edge: 0, text: "" }, overKelly);
 
       const underEdge = sealedEdgeTrigger("under-sweet", {
         water: under1,
@@ -2885,14 +3444,19 @@
         (lineMove < -0.01 ? 2 : lineMove > 0.01 ? -1 : 0) +
         (underMove < -0.05 ? 2 : underMove > 0.05 ? -1 : 0) -
         (homeScore + awayScore > 0 && lineMove > 0.01 ? 1 : 0) +
-        phaseBias(phase, homeScore, awayScore, "under").score;
+        phaseBias(phase, homeScore, awayScore, "under").score +
+        poissonEdgeValue("under", poisson).score +
+        markovEdgeValue("under", markov, homeScore, awayScore).score;
+      const underKelly = halfKellyValue(totalKellyProb("under", over1, under1, lineMove, overMove, underMove, phase, homeScore, awayScore), under1);
       pushRow(`小球 ${goalLine1}`, underValue, [
         `折算全场预期约 ${fmtLine(effectiveGoalLine1)}`,
         lineMove < -0.01 ? `折算后大小球降盘到 ${fmtLine(effectiveGoalLine1)}` : lineMove > 0.01 ? "折算后大小球升盘，小球承压" : "折算后大小球盘口未变",
+        poissonEdgeValue("under", poisson).text,
+        markovEdgeValue("under", markov, homeScore, awayScore).text,
         underMove < -0.05 ? "小球降水，进球停滞被防范" : underMove > 0.05 ? "小球升水，小球信心减弱" : "小球水位稳定",
         phaseBias(phase, homeScore, awayScore, "under").text,
         homeScore + awayScore > 0 ? `当前已有 ${homeScore + awayScore} 球` : "未进球阶段"
-      ], returnShapeValue("water", under1), underEdge);
+      ], returnShapeValue("water", under1), underEdge, { score: 0, edge: 0, text: "" }, underKelly);
 
       rows.sort((a, b) => {
         const order = { "偏有价值": 0, "有一定价值": 1, "中性": 2, "谨慎": 3 };
@@ -2958,6 +3522,17 @@
           return "大球和受让深盘的稳妥路径不一致。";
         }
       }
+      if (groupA !== groupB) {
+        const overlap = routeOverlap(a, b);
+        if (overlap < 0.16) {
+          if (pair === "draw|home" || pair === "away|draw") {
+            return `平局和胜负方向的成功比分重叠偏低（约 ${(overlap * 100).toFixed(0)}%），优先保留综合价值更高的一边。`;
+          }
+          if (asian && total) {
+            return `让球和大小球的成功路径重叠偏低（约 ${(overlap * 100).toFixed(0)}%），不适合同时重仓。`;
+          }
+        }
+      }
       return "";
     }
 
@@ -3000,7 +3575,9 @@
       const base = stakeRateFromScore(row.score, mode);
       const bayesEdge = Number(row.bayesEdge || 0);
       const bayesMultiplier = bayesEdge >= 0.035 ? 1.12 : bayesEdge >= 0.018 ? 1.06 : bayesEdge <= -0.03 ? 0.78 : bayesEdge <= -0.015 ? 0.9 : 1;
-      let adjusted = base * bayesMultiplier;
+      const kellyMultiplier = Number(row.kellyMultiplier || 1);
+      let adjusted = base * bayesMultiplier * kellyMultiplier;
+      if (Number(row.kellyEdge || 0) <= -0.04) adjusted = Math.min(adjusted, base * 0.9);
       if (row.modelTier === "calibrated") {
         adjusted *= 1.08;
         return Math.min(adjusted, mode === "conservative" ? 0.42 : 0.74);
@@ -3171,9 +3748,26 @@
       return Math.max(currentTotal, Math.max(0, target));
     }
 
-    function buildFirstScorePrediction(p1, support) {
+    function buildFirstScorePrediction(p1, support, poisson = null) {
       const homeScore = val("homeScore");
       const awayScore = val("awayScore");
+      if (poisson?.topScores?.length) {
+        const rows = poisson.topScores
+          .filter(row => row.home >= homeScore && row.away >= awayScore)
+          .slice(0, 2);
+        if (rows.length >= 2) {
+          return {
+            version: SCORE_PREDICTION_VERSION,
+            matchKey: matchLedgerKey(),
+            createdAt: Date.now(),
+            scores: rows.map((row, index) => ({
+              value: row.value,
+              label: index === 0 ? "首选比分" : "备选比分",
+              note: `${resultLabel(row.result)}，Poisson ${pct(row.prob)}`
+            }))
+          };
+        }
+      }
       const rawGoalLine = val("goalLine1");
       const rawAh = val("ah1");
       const goalLine = effectiveGoalLine(rawGoalLine, homeScore, awayScore);
@@ -3223,18 +3817,24 @@
       };
     }
 
-    function ensureFirstScorePrediction(p1, support) {
+    function ensureFirstScorePrediction(p1, support, poisson = null) {
       const key = matchLedgerKey();
       if (!key) return;
       const existing = scorePredictionForCurrentMatch();
       const homeScore = val("homeScore");
       const awayScore = val("awayScore");
       if (existing && predictionFitsCurrentScore(existing, homeScore, awayScore)) return;
-      const prediction = buildFirstScorePrediction(p1, support);
+      const prediction = buildFirstScorePrediction(p1, support, poisson);
       if (!prediction) return;
       const rows = scorePredictionCache().filter(row => row.matchKey !== key);
       rows.unshift(prediction);
       saveScorePredictionCache(rows);
+    }
+
+    function ensureScorePredictionForAnalysis(bayes, support, poisson) {
+      const key = matchLedgerKey();
+      if (!key || scorePredictionForCurrentMatch()) return;
+      ensureFirstScorePrediction(bayes, support, poisson);
     }
 
     function ensureFirstScorePredictionFromInputs() {
@@ -3243,11 +3843,15 @@
       if ([...e0, ...e1].some(n => !Number.isFinite(n) || n <= 0)) return;
       const p0 = implied(...e0);
       const p1 = implied(...e1);
+      const shin0 = shinImplied(...e0);
+      const shin1 = shinImplied(...e1);
+      const base0 = blendProbabilities(p0, shin0);
+      const base1 = blendProbabilities(p1, shin1);
       const homeScore = val("homeScore");
       const awayScore = val("awayScore");
       const ah0 = val("ah0");
       const ah1 = val("ah1");
-      const bayes = bayesianBlend(p0, p1, {
+      const rawBayes = bayesianBlend(base0, base1, {
         hMove: effectiveAsianLine(ah1, homeScore, awayScore) - ah0,
         homeWaterMove: val("hw1") - val("hw0"),
         awayWaterMove: val("aw1") - val("aw0"),
@@ -3258,7 +3862,23 @@
         awayScore,
         phase: $("matchPhase")?.value || "pre"
       });
-      ensureFirstScorePrediction(bayes, supportSideByEuro(p0, bayes));
+      const bayes = calibratePosterior(base1, rawBayes, {
+        homeScore,
+        awayScore,
+        phase: $("matchPhase")?.value || "pre"
+      });
+      const poisson = buildPoissonModel({
+        bayes,
+        goalLine1: val("goalLine1"),
+        over1: val("over1"),
+        under1: val("under1"),
+        homeScore,
+        awayScore,
+        ah1,
+        phase: $("matchPhase")?.value || "pre"
+      });
+      const dcModel = buildDixonColesModel(poisson, { homeScore, awayScore, goalLine1: val("goalLine1") });
+      ensureFirstScorePrediction(bayes, supportSideByEuro(base0, bayes), dcModel);
     }
 
     function scorePicksMarkup() {
@@ -3279,7 +3899,7 @@
       `).join("");
     }
 
-    function renderRecommendation(p1, bayes, support, homeScore, awayScore, e1, context) {
+    function renderRecommendation(p1, bayes, bayesBase, support, homeScore, awayScore, e1, context) {
       const rawTopRows = latestValueRows.filter(row => row.score >= 2);
       const topRows = filterRouteConflicts(rawTopRows).slice(0, 3);
       const hasRouteFiltered = rawTopRows.length > topRows.length;
@@ -3295,9 +3915,9 @@
       };
       const recommendName = topRows.length ? cleanName(topRows[0].name) : "观望";
       const likely = [
-        { name: "主胜", prob: bayes.home, marketProb: p1.home, odd: e1[0] },
-        { name: "平局", prob: bayes.draw, marketProb: p1.draw, odd: e1[1] },
-        { name: "客胜", prob: bayes.away, marketProb: p1.away, odd: e1[2] }
+        { name: "主胜", prob: bayes.home, marketProb: bayesBase.home, odd: e1[0] },
+        { name: "平局", prob: bayes.draw, marketProb: bayesBase.draw, odd: e1[1] },
+        { name: "客胜", prob: bayes.away, marketProb: bayesBase.away, odd: e1[2] }
       ].sort((a, b) => b.prob - a.prob)[0];
       const likelyPrice = euroPriceValue(likely.odd);
       const riskTags = buildRiskTags({ e1, p1, homeScore, awayScore, ...context });
@@ -3328,7 +3948,7 @@
             ? "综合评分里使用了封存回测校准，但不会只按单一模型下注。"
             : "当前主要按盘口变化、赔率回报、贝叶斯后验和比赛节点做综合判断。";
         const bayesNote = recommendName.includes(likely.name) || likely.name.includes(recommendName)
-          ? `贝叶斯后验也更看重${likely.name} ${pct(likely.prob)}，市场去水为 ${pct(likely.marketProb)}。`
+          ? `贝叶斯后验也更看重${likely.name} ${pct(likely.prob)}，概率底座为 ${pct(likely.marketProb)}。`
           : `贝叶斯后验概率最高是${likely.name} ${pct(likely.prob)}，但综合评分还会比较赔率回报、盘口路径和资金价值，所以当前主推${recommendName}。`;
         $("recommendationSubtitle").textContent = `${first.grade}。${modelNote} ${bayesNote} 这里推荐的是“值得下注的方向”，不是单纯胜率最高的方向；赔率太低的选项会被自动降权。${lowPriceNote} ${directionNote?.text || ""} ${previousNote}`.trim();
       }
@@ -3341,6 +3961,7 @@
       $("riskTags").innerHTML = riskTags.map(([text, type]) => `<span class="tag ${type}">${text}</span>`).join("");
       $("recommendationTags").innerHTML = [
         hasRouteFiltered ? `<span class="tag warn">已过滤路径冲突</span>` : "",
+        context?.poisson ? `<span class="tag info">DC/Markov校验</span>` : "",
         directionNote?.type === "opposite" ? `<span class="tag warn">推荐与比分相反：需看反扑价值</span>` : "",
         ...topRows.map(row => `<span class="tag ${row.cls}">${row.name}：${row.grade}</span>`),
         ...avoidRows.map(row => `<span class="tag bad">谨慎：${row.name}</span>`)
@@ -3837,13 +4458,17 @@
 
       const p0 = implied(...e0);
       const p1 = implied(...e1);
+      const shin0 = shinImplied(...e0);
+      const shin1 = shinImplied(...e1);
+      const base0 = blendProbabilities(p0, shin0);
+      const base1 = blendProbabilities(p1, shin1);
       const effectiveAh1 = effectiveAsianLine(ah1, homeScore, awayScore);
       const effectiveGoalLine1 = effectiveGoalLine(goalLine1, homeScore, awayScore);
       const hMove = effectiveAh1 - ah0;
       const goalLineMove = effectiveGoalLine1 - goalLine0;
       const homeWaterMove = hw1 - hw0;
       const awayWaterMove = aw1 - aw0;
-      const bayes = bayesianBlend(p0, p1, {
+      const bayesContext = {
         hMove,
         homeWaterMove,
         awayWaterMove,
@@ -3853,8 +4478,29 @@
         homeScore,
         awayScore,
         phase: $("matchPhase")?.value || "pre"
+      };
+      const rawBayes = bayesianBlend(base0, base1, bayesContext);
+      const rawSupport = supportSideByEuro(base0, rawBayes);
+      const bayes = calibratePosterior(base1, rawBayes, {
+        ...bayesContext,
+        inconsistent:
+          ((rawSupport.side === "主队" && rawSupport.delta > 0.01) && (hMove > 0.01 || (Math.abs(hMove) < 0.01 && awayWaterMove < -0.04))) ||
+          ((rawSupport.side === "客队" && rawSupport.delta > 0.01) && (hMove < -0.01 || (Math.abs(hMove) < 0.01 && homeWaterMove < -0.04)))
       });
-      const support = supportSideByEuro(p0, bayes);
+      const poisson = buildPoissonModel({
+        bayes,
+        goalLine1,
+        over1,
+        under1,
+        homeScore,
+        awayScore,
+        ah1,
+        phase: $("matchPhase")?.value || "pre"
+      });
+      const dcModel = buildDixonColesModel(poisson, { homeScore, awayScore, goalLine1 });
+      const markov = buildMarkovModel(dcModel, { homeScore, awayScore, phase: $("matchPhase")?.value || "pre", bayes });
+      const support = supportSideByEuro(base0, bayes);
+      ensureScorePredictionForAnalysis(bayes, support, dcModel);
       const structure0 = euroStructure(e0, p0);
       const structure1 = euroStructure(e1, p1);
 
@@ -3912,9 +4558,9 @@
       });
 
       $("tags").innerHTML = tags.map(t => `<span class="tag ${t.type}">${t.text}</span>`).join("");
-      renderValueTable(e0, e1, p0, p1, bayes, ah0, ah1, hw0, hw1, aw0, aw1, goalLine0, goalLine1, over0, over1, under0, under1, homeScore, awayScore);
+      renderValueTable(e0, e1, p0, p1, bayes, base1, dcModel, markov, ah0, ah1, hw0, hw1, aw0, aw1, goalLine0, goalLine1, over0, over1, under0, under1, homeScore, awayScore);
       renderAllocationTable(plannedStake);
-      renderRecommendation(p1, bayes, support, homeScore, awayScore, e1, {
+      renderRecommendation(p1, bayes, base1, support, homeScore, awayScore, e1, {
         hMove,
         homeWaterMove,
         awayWaterMove,
@@ -3924,7 +4570,8 @@
         consistentHome,
         consistentAway,
         inconsistent,
-        phase: $("matchPhase")?.value || "pre"
+        phase: $("matchPhase")?.value || "pre",
+        poisson: dcModel
       });
 
       $("metrics").innerHTML = [
@@ -3938,7 +4585,9 @@
         return `<div class="metric"><b>${pct(after)}</b><span>${name}，市场 ${pct(before)}，修正 <em class="${cls}">${sign}${(diff * 100).toFixed(1)}%</em></span></div>`;
       }).join("");
       renderProbabilityDetails(e0, e1, p0, p1);
-      renderBayesianDetails(p1, bayes);
+      renderShinDetails(p1, shin1, base1);
+      renderBayesianDetails(base1, bayes);
+      renderPoissonDetails(dcModel, markov);
 
       const euroRows = [
         ["主胜", e0[0], e1[0]],
