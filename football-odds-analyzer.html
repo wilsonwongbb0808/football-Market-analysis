@@ -788,10 +788,71 @@
       justify-content: flex-end;
     }
 
+    .license-panel {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      margin: 0 0 18px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,.82);
+      box-shadow: var(--shadow);
+    }
+
+    .license-panel input {
+      min-width: 0;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0 12px;
+      font-size: 15px;
+      text-transform: uppercase;
+    }
+
+    .license-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .license-status {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .auth-locked .results {
+      position: relative;
+    }
+
+    .auth-locked .results::after {
+      content: "请输入激活码登录后查看完整预测";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: start center;
+      padding-top: 120px;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 800;
+      text-align: center;
+      border-radius: 16px;
+      background: rgba(17, 33, 51, .72);
+      backdrop-filter: blur(4px);
+      z-index: 5;
+      pointer-events: none;
+    }
+
     @media (max-width: 900px) {
       .app { padding: 16px; }
       header { align-items: stretch; flex-direction: column; }
       .actions { justify-content: flex-start; }
+      .license-panel { grid-template-columns: 1fr; }
+      .license-actions { justify-content: flex-start; }
       .layout { grid-template-columns: 1fr; }
       .form { position: static; }
       .metrics { grid-template-columns: 1fr; }
@@ -1152,6 +1213,15 @@
       <button class="view-tab" data-view="pro" type="button">专业数据</button>
     </nav>
 
+    <section class="license-panel" aria-label="激活码登录">
+      <input id="licenseCode" type="text" placeholder="输入激活码，例如 FMA-XXXX-XXXX-XXXX-XXXX" autocomplete="off">
+      <div class="license-actions">
+        <button class="primary" id="licenseLoginBtn" type="button">登录授权</button>
+        <button id="licenseLogoutBtn" type="button">退出</button>
+      </div>
+      <div class="license-status" id="licenseStatus">未登录：可填写数据，但完整预测、专业数据和复制分析需要激活码。</div>
+    </section>
+
     <div class="layout">
       <section class="form active-panel" data-panel="input" aria-label="赔率输入">
         <h2>输入数据</h2>
@@ -1399,6 +1469,11 @@
     let analysisTimer = null;
     let allowSaveCurrentInputs = false;
     let latestConservativeAdvice = [];
+    const LICENSE_SESSION_KEY = "footballMarketLicenseSession";
+    const DEVICE_ID_KEY = "footballMarketDeviceId";
+    let licenseSession = null;
+    let heartbeatTimer = null;
+    let remoteModelConfig = null;
     const $ = id => document.getElementById(id);
     const fmt = n => Number.isFinite(n) ? n.toFixed(2) : "-";
     const pct = n => Number.isFinite(n) ? (n * 100).toFixed(1) + "%" : "-";
@@ -1433,6 +1508,179 @@
       });
       $("goalLine0").value = String(DEFAULT_CASE.goalLine0);
       $("goalLine1").value = String(DEFAULT_CASE.goalLine1);
+    }
+
+    function deviceId() {
+      let id = localStorage.getItem(DEVICE_ID_KEY);
+      if (!id) {
+        id = `dev-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+        localStorage.setItem(DEVICE_ID_KEY, id);
+      }
+      return id;
+    }
+
+    function authPayload(extra = {}) {
+      return {
+        code: licenseSession?.code || $("licenseCode")?.value || "",
+        token: licenseSession?.token || "",
+        deviceId: deviceId(),
+        userAgent: navigator.userAgent,
+        ...extra
+      };
+    }
+
+    async function apiPost(path, payload) {
+      const res = await fetch(path, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) {
+        const error = new Error(data.message || "授权服务暂时不可用");
+        error.status = res.status;
+        error.data = data;
+        throw error;
+      }
+      return data;
+    }
+
+    function isAuthorized() {
+      return Boolean(licenseSession?.code && licenseSession?.token);
+    }
+
+    function saveLicenseSession(session) {
+      licenseSession = session;
+      if (session) localStorage.setItem(LICENSE_SESSION_KEY, JSON.stringify(session));
+      else localStorage.removeItem(LICENSE_SESSION_KEY);
+      applyAuthGate();
+    }
+
+    function authStatusText(text, bad = false) {
+      const el = $("licenseStatus");
+      if (!el) return;
+      el.textContent = text;
+      el.style.color = bad ? "var(--red)" : "var(--muted)";
+    }
+
+    function applyAuthGate() {
+      document.body.classList.toggle("auth-locked", !isAuthorized());
+      if ($("licenseCode") && licenseSession?.code) $("licenseCode").value = licenseSession.code;
+      $("licenseLogoutBtn").disabled = !isAuthorized();
+      const brief = licenseSession
+        ? `已授权：${licenseSession.code}。今日 ${licenseSession.used || 0}/${licenseSession.dailyLimit || "-"} 次，${licenseSession.expiresAt ? "到期 " + new Date(licenseSession.expiresAt).toLocaleDateString("zh-CN") : "无到期信息"}。`
+        : "未登录：可填写数据，但完整预测、专业数据和复制分析需要激活码。";
+      authStatusText(brief);
+    }
+
+    function restoreLicenseSession() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(LICENSE_SESSION_KEY) || "null");
+        if (saved?.code && saved?.token) licenseSession = saved;
+      } catch {
+        localStorage.removeItem(LICENSE_SESSION_KEY);
+      }
+      applyAuthGate();
+    }
+
+    async function loginLicense() {
+      const code = String($("licenseCode").value || "").trim().toUpperCase();
+      if (!code) {
+        authStatusText("请先输入激活码。", true);
+        return;
+      }
+      $("licenseLoginBtn").disabled = true;
+      authStatusText("正在验证激活码...");
+      try {
+        const data = await apiPost("/api/license/login", {
+          code,
+          deviceId: deviceId(),
+          userAgent: navigator.userAgent
+        });
+        saveLicenseSession({
+          code,
+          token: data.token,
+          expiresAt: data.expiresAt || "",
+          dailyLimit: data.dailyLimit || 0,
+          used: 0
+        });
+        remoteModelConfig = data.config || remoteModelConfig;
+        startHeartbeat();
+        authStatusText(data.message || "授权成功");
+      } catch (error) {
+        saveLicenseSession(null);
+        authStatusText(error.message, true);
+      } finally {
+        $("licenseLoginBtn").disabled = false;
+      }
+    }
+
+    async function logoutLicense() {
+      const session = licenseSession;
+      saveLicenseSession(null);
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
+      if (session?.code && session?.token) {
+        try {
+          await apiPost("/api/license/logout", {
+            code: session.code,
+            token: session.token,
+            deviceId: deviceId(),
+            userAgent: navigator.userAgent
+          });
+        } catch {}
+      }
+      authStatusText("已退出授权。");
+    }
+
+    async function heartbeatLicense() {
+      if (!isAuthorized()) return;
+      try {
+        const data = await apiPost("/api/license/heartbeat", authPayload());
+        licenseSession = {
+          ...licenseSession,
+          expiresAt: data.expiresAt || licenseSession.expiresAt,
+          dailyLimit: data.dailyLimit || licenseSession.dailyLimit,
+          used: data.todayUsed ?? licenseSession.used
+        };
+        localStorage.setItem(LICENSE_SESSION_KEY, JSON.stringify(licenseSession));
+        applyAuthGate();
+      } catch (error) {
+        saveLicenseSession(null);
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+        authStatusText(error.message || "授权已失效，请重新登录。", true);
+      }
+    }
+
+    function startHeartbeat() {
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = setInterval(heartbeatLicense, 180000);
+      heartbeatLicense();
+    }
+
+    async function consumeQueryQuota() {
+      if (!isAuthorized()) {
+        authStatusText("请先登录激活码，再查看完整预测。", true);
+        return false;
+      }
+      try {
+        const data = await apiPost("/api/license/query", authPayload());
+        remoteModelConfig = data.config || remoteModelConfig;
+        licenseSession = {
+          ...licenseSession,
+          dailyLimit: data.dailyLimit,
+          used: data.used
+        };
+        localStorage.setItem(LICENSE_SESSION_KEY, JSON.stringify(licenseSession));
+        applyAuthGate();
+        authStatusText(`查询成功：今日已用 ${data.used}/${data.dailyLimit} 次，剩余 ${data.remaining} 次。`);
+        return true;
+      } catch (error) {
+        if (error.status === 409 || error.status === 403) saveLicenseSession(null);
+        authStatusText(error.message, true);
+        return false;
+      }
     }
 
     function fillScores() {
@@ -1789,8 +2037,13 @@
       });
     }
 
-    function startAnalysis() {
+    async function startAnalysis() {
       syncCurrentMatchKeyFromName();
+      const allowed = await consumeQueryQuota();
+      if (!allowed) {
+        setActiveView("input");
+        return;
+      }
       analyze();
       allowSaveCurrentInputs = true;
       saveCurrentInputs();
@@ -2183,12 +2436,25 @@
       return { score: 0, tier: "standard", text: "" };
     }
 
-    function drawCoverageValue(line, drawScore, drawProb, water) {
+    function drawPathValue(side, line, drawScore, drawProb, water, homeScore, awayScore) {
       if (!Number.isFinite(line) || !Number.isFinite(drawScore) || !Number.isFinite(drawProb)) {
         return { score: 0, text: "" };
       }
       const drawSignalStrong = drawScore >= 3 || drawProb >= 0.29;
-      if (!drawSignalStrong || line < 0 || water < 0.65 || water > 1.2) return { score: 0, text: "" };
+      if (!drawSignalStrong || water < 0.65 || water > 1.2) return { score: 0, text: "" };
+      if (awayScore > homeScore) {
+        if (side === "home") {
+          return { score: 1.4, text: "平局主线下客队已经领先，主队方向更符合追回一球的路径；此时不应继续把客队受让当成平局保护。" };
+        }
+        return { score: -2.2, text: "平局主线下客队已经领先，继续买客队受让是在保护客队不败，和主队追回平局的路径冲突。" };
+      }
+      if (homeScore > awayScore) {
+        if (side === "away") {
+          return { score: 1.4, text: "平局主线下主队已经领先，客队方向更符合追回一球的路径；此时不应继续把主队受让当成平局保护。" };
+        }
+        return { score: -2.2, text: "平局主线下主队已经领先，继续买主队受让是在保护主队不败，和客队追回平局的路径冲突。" };
+      }
+      if (line < 0) return { score: 0, text: "" };
       if (line >= 0.5) {
         return { score: 1.4, text: "平局信号偏强，这个受让方向能覆盖平局结果，容错比直接买平局更高。" };
       }
@@ -2308,10 +2574,14 @@
         Number.isFinite(last.over) ? Math.abs(val("over1") - last.over) : 0,
         Number.isFinite(last.under) ? Math.abs(val("under1") - last.under) : 0
       );
+      const thresholds = remoteModelConfig?.reserveAddThresholds || {};
+      const ahThreshold = Number(thresholds.asianLine || 0.25);
+      const goalThreshold = Number(thresholds.goalLine || 0.25);
+      const waterThreshold = Number(thresholds.water || 0.12);
       if (scoreChanged) return { allow: true, reason: "比分发生变化，属于新的赛中节点。" };
-      if (ahMove >= 0.25) return { allow: true, reason: `亚盘较上次建议移动 ${ahMove.toFixed(2)}，达到追加判断阈值。` };
-      if (goalLineMove >= 0.25) return { allow: true, reason: `大小球较上次建议移动 ${goalLineMove.toFixed(2)}，达到追加判断阈值。` };
-      if (waterMove >= 0.12) return { allow: true, reason: `水位较上次建议最大变化 ${waterMove.toFixed(2)}，达到追加判断阈值。` };
+      if (ahMove >= ahThreshold) return { allow: true, reason: `亚盘较上次建议移动 ${ahMove.toFixed(2)}，达到追加判断阈值。` };
+      if (goalLineMove >= goalThreshold) return { allow: true, reason: `大小球较上次建议移动 ${goalLineMove.toFixed(2)}，达到追加判断阈值。` };
+      if (waterMove >= waterThreshold) return { allow: true, reason: `水位较上次建议最大变化 ${waterMove.toFixed(2)}，达到追加判断阈值。` };
       if (phaseAdvanced) return { allow: false, reason: "只有比赛时间推进，比分、盘口线和水位都没有明显变化，中场或下半场重新填写不自动追加。" };
       return { allow: false, reason: "距离上次建议没有出现明显新变盘，保守计划先延续旧建议并保留资金。" };
     }
@@ -2417,7 +2687,7 @@
       ], returnShapeValue("euro", e1[2]));
 
       const homeAsianEdge = sealedEdgeTrigger("asian-balanced", { water: hw1, move: homeWaterMove });
-      const homeDrawCoverage = drawCoverageValue(ah1, drawScoreValue, p1.draw, hw1);
+      const homeDrawCoverage = drawPathValue("home", ah1, drawScoreValue, p1.draw, hw1, homeScore, awayScore);
       const homeAsianValue =
         homeAsianConfirm.score +
         homeEuroCore.score * 0.55 +
@@ -2433,7 +2703,7 @@
       ], returnShapeValue("water", hw1), homeAsianEdge);
 
       const awayAsianEdge = sealedEdgeTrigger("asian-balanced", { water: aw1, move: awayWaterMove });
-      const awayDrawCoverage = drawCoverageValue(-ah1, drawScoreValue, p1.draw, aw1);
+      const awayDrawCoverage = drawPathValue("away", -ah1, drawScoreValue, p1.draw, aw1, homeScore, awayScore);
       const awayAsianValue =
         awayAsianConfirm.score +
         awayEuroCore.score * 0.55 +
@@ -2521,11 +2791,19 @@
       const groupA = allocationGroup(a);
       const groupB = allocationGroup(b);
       const pair = [groupA, groupB].sort().join("|");
+      const homeScore = val("homeScore");
+      const awayScore = val("awayScore");
       const asian = a.name.includes("亚盘") ? a : b.name.includes("亚盘") ? b : null;
       const total = groupA === "under" || groupA === "over" ? a : groupB === "under" || groupB === "over" ? b : null;
       const asianLine = rowLine(asian);
       const totalLine = rowLine(total);
 
+      if (pair === "away|draw" && awayScore > homeScore) {
+        return "平局主线下客队已经领先，继续推荐客队方向会变成保护客队不败，和追平路径冲突。";
+      }
+      if (pair === "draw|home" && homeScore > awayScore) {
+        return "平局主线下主队已经领先，继续推荐主队方向会变成保护主队不败，和追平路径冲突。";
+      }
       if (pair === "draw|home" || pair === "away|draw") {
         if (asian && asianLine <= -1) return "平局方向和深让球方向的比分路径冲突。";
       }
@@ -2547,6 +2825,14 @@
         const conflictIndex = selected.findIndex(item => routeConflictReason(item, row));
         if (conflictIndex === -1) {
           selected.push(row);
+          return;
+        }
+        const existing = selected[conflictIndex];
+        if (allocationGroup(row) === "draw" && row.score >= existing.score - 0.8) {
+          selected.splice(conflictIndex, 1, row);
+          return;
+        }
+        if (allocationGroup(existing) === "draw" && existing.score >= row.score - 0.8) {
           return;
         }
         if (row.score > selected[conflictIndex].score + 1.2) {
@@ -3210,6 +3496,11 @@
     }
 
     function recordSnapshot() {
+      if (!isAuthorized()) {
+        authStatusText("请先登录激活码，再记录完整分析节点。", true);
+        setActiveView("input");
+        return;
+      }
       syncCurrentMatchKeyFromName();
       analyze();
       ensureFirstScorePredictionFromInputs();
@@ -3587,6 +3878,10 @@
     }
 
     async function copyReport() {
+      if (!isAuthorized()) {
+        authStatusText("请先登录激活码，再复制完整分析。", true);
+        return;
+      }
       const text = [
         $("verdict").textContent,
         $("summaryText").textContent,
@@ -3614,6 +3909,8 @@
     prepareNumberInputs();
     applyCase(DEFAULT_CASE);
     restore();
+    restoreLicenseSession();
+    if (isAuthorized()) startHeartbeat();
     ids.forEach(id => $(id).addEventListener("input", analyze));
     ids.forEach(id => $(id).addEventListener("change", analyze));
     $("sampleBtn").addEventListener("click", sample);
@@ -3622,6 +3919,8 @@
     $("startAnalysisBtn").addEventListener("click", startAnalysis);
     $("recordBtn").addEventListener("click", recordSnapshot);
     $("clearHistoryBtn").addEventListener("click", clearHistory);
+    $("licenseLoginBtn").addEventListener("click", loginLicense);
+    $("licenseLogoutBtn").addEventListener("click", logoutLicense);
     $("historyTable").addEventListener("click", event => {
       const button = event.target.closest("[data-history-action]");
       if (!button) return;
