@@ -3463,8 +3463,16 @@
         return order[a.grade] - order[b.grade] || b.score - a.score || a.marketRank - b.marketRank;
       });
       latestValueRows = rows;
+      latestValueRows = applyMarketQualityGate(latestValueRows, {
+        e1,
+        p1,
+        ah1,
+        goalLine1,
+        over1,
+        under1
+      });
 
-      $("valueTable").innerHTML = rows.map(row => `
+      $("valueTable").innerHTML = latestValueRows.map(row => `
         <tr>
           <td>${row.name}</td>
           <td><span class="tag value-grade ${row.cls}">${row.grade}</span></td>
@@ -3472,6 +3480,131 @@
           <td>${row.reason}</td>
         </tr>
       `).join("");
+    }
+
+    function marketStrengthProfile({ e1, p1, ah1, goalLine1, over1, under1 }) {
+      const homeOdd = Number(e1?.[0]);
+      const drawOdd = Number(e1?.[1]);
+      const awayOdd = Number(e1?.[2]);
+      const favorite = homeOdd < awayOdd ? "home" : awayOdd < homeOdd ? "away" : "even";
+      const favoriteOdd = Math.min(homeOdd, awayOdd);
+      const underdogOdd = Math.max(homeOdd, awayOdd);
+      const ratio = favoriteOdd > 0 ? underdogOdd / favoriteOdd : 0;
+      const favoriteProb = favorite === "home" ? Number(p1?.home || 0) : favorite === "away" ? Number(p1?.away || 0) : 0;
+      const drawProb = Number(p1?.draw || 0);
+      const handicapDepth = Math.abs(Number(ah1 || 0));
+      const totalLine = Number(goalLine1);
+      const underWater = Number(under1);
+      const overWater = Number(over1);
+      const lowTotal = Number.isFinite(totalLine) && totalLine <= 2.5;
+      const balanced = favorite === "even" || favoriteOdd >= 2.1 || ratio < 1.6;
+      const superFavorite = favoriteOdd <= 1.25 || ratio >= 8;
+      const obvious = !superFavorite && (favoriteOdd <= 1.5 || ratio >= 4);
+      const medium = !superFavorite && !obvious && (favoriteOdd <= 1.8 || ratio >= 2.5);
+      const slight = !superFavorite && !obvious && !medium && !balanced;
+      const drawProtection =
+        drawProb >= 0.255 ||
+        (Number.isFinite(drawOdd) && drawOdd <= 3.6 && favoriteOdd <= 2.05) ||
+        (lowTotal && drawProb >= 0.22) ||
+        (lowTotal && Number.isFinite(underWater) && Number.isFinite(overWater) && underWater <= overWater + 0.08);
+      const deepHandicapTrap = superFavorite && handicapDepth >= 1.5 && (drawProtection || lowTotal);
+      const tier = superFavorite ? "super" : obvious ? "obvious" : medium ? "medium" : slight ? "slight" : "balanced";
+      return {
+        favorite,
+        favoriteOdd,
+        underdogOdd,
+        ratio,
+        favoriteProb,
+        drawProb,
+        handicapDepth,
+        totalLine,
+        lowTotal,
+        drawProtection,
+        deepHandicapTrap,
+        tier
+      };
+    }
+
+    function marketQualityGateForRow(row, context) {
+      const profile = marketStrengthProfile(context);
+      const group = allocationGroup(row);
+      let penalty = 0;
+      const notes = [];
+      const isWinDirection = group === "home" || group === "away";
+      const isFavoriteDirection = group === profile.favorite;
+      const isFavoriteAsian =
+        (profile.favorite === "home" && row.name.includes("亚盘主队")) ||
+        (profile.favorite === "away" && row.name.includes("亚盘客队"));
+
+      if (profile.tier === "balanced" && isWinDirection) {
+        penalty -= 2.4;
+        notes.push("欧指接近均势，硬选胜负方向降级");
+      }
+      if ((profile.tier === "medium" || profile.tier === "slight") && isFavoriteDirection && profile.drawProtection) {
+        penalty -= profile.tier === "medium" ? 2.4 : 2.6;
+        notes.push("强队优势不够厚，且平局保护偏高，降低追强队胜");
+      }
+      if ((profile.tier === "medium" || profile.tier === "slight") && (group === "under" || group === "over") && profile.drawProtection) {
+        penalty -= 2.6;
+        notes.push("非明显强弱层叠加防平结构，大小球也降为观察，避免用小球替代方向硬下");
+      }
+      if ((profile.tier === "medium" || profile.tier === "slight") && isFavoriteAsian && profile.drawProtection) {
+        penalty -= 2.4;
+        notes.push("非明显强弱层叠加防平结构，让球盘不再进入主推");
+      }
+      if (profile.tier === "super" && (isFavoriteDirection || isFavoriteAsian) && profile.deepHandicapTrap) {
+        penalty -= row.name.includes("亚盘") ? 1.8 : 1.4;
+        notes.push("超级低赔叠加深让/低进球结构，防强队低赔陷阱");
+      }
+      if (profile.tier === "super" && (isFavoriteDirection || isFavoriteAsian) && !profile.deepHandicapTrap) {
+        penalty -= 0.7;
+        notes.push("超级低赔回报过薄，强队方向不再按普通胜负盘追高");
+      }
+      if (profile.tier === "obvious" && isFavoriteDirection && !profile.drawProtection) {
+        penalty += 0.25;
+        notes.push("欧指属于明显强弱且平局保护不重，保留强队方向");
+      }
+      if (group === "draw" && (profile.tier === "balanced" || profile.drawProtection)) {
+        penalty += profile.tier === "balanced" ? 0.35 : 0.15;
+        notes.push("欧指结构保留平局防范");
+      }
+
+      return {
+        penalty,
+        reason: notes.join("；"),
+        profile
+      };
+    }
+
+    function marketAdjustedResultLean(rawLean, context) {
+      const profile = marketStrengthProfile(context);
+      if ((rawLean === "home" || rawLean === "away") && rawLean === profile.favorite) {
+        if ((profile.tier === "medium" || profile.tier === "slight") && profile.drawProtection) return "draw";
+        if (profile.tier === "super" && profile.deepHandicapTrap) return "draw";
+      }
+      return rawLean;
+    }
+
+    function applyMarketQualityGate(rows, context) {
+      return rows.map(row => {
+        const gate = marketQualityGateForRow(row, context);
+        if (!gate.penalty) return row;
+        const score = row.score + gate.penalty;
+        const [grade, cls, action] = valueGrade(score);
+        return {
+          ...row,
+          score,
+          grade,
+          cls,
+          action,
+          marketQualityTier: gate.profile.tier,
+          marketQualityPenalty: gate.penalty,
+          reason: `${row.reason}；欧指过滤：${gate.reason}`
+        };
+      }).sort((a, b) => {
+        const order = { "偏有价值": 0, "有一定价值": 1, "中性": 2, "谨慎": 3 };
+        return order[a.grade] - order[b.grade] || b.score - a.score || a.marketRank - b.marketRank;
+      });
     }
 
     function money(n) {
@@ -3751,6 +3884,17 @@
     function buildFirstScorePrediction(p1, support, poisson = null) {
       const homeScore = val("homeScore");
       const awayScore = val("awayScore");
+      const rawGoalLine = val("goalLine1");
+      const rawAh = val("ah1");
+      const rawLean = pickResultLean(p1, support);
+      const lean = marketAdjustedResultLean(rawLean, {
+        e1: [val("eh1"), val("ed1"), val("ea1")],
+        p1,
+        ah1: rawAh,
+        goalLine1: rawGoalLine,
+        over1: val("over1"),
+        under1: val("under1")
+      });
       if (poisson?.topScores?.length) {
         const rows = poisson.topScores
           .filter(row => row.home >= homeScore && row.away >= awayScore)
@@ -3768,13 +3912,10 @@
           };
         }
       }
-      const rawGoalLine = val("goalLine1");
-      const rawAh = val("ah1");
       const goalLine = effectiveGoalLine(rawGoalLine, homeScore, awayScore);
       const ah = effectiveAsianLine(rawAh, homeScore, awayScore);
       if (![homeScore, awayScore, goalLine, ah].every(Number.isFinite)) return null;
 
-      const lean = pickResultLean(p1, support);
       const target = totalGoalTarget(goalLine, homeScore, awayScore);
       const maxGoals = Math.max(target + 2, homeScore + awayScore + 2, 4);
       const expectedDiff = -ah;
